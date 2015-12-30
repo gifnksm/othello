@@ -15,7 +15,8 @@ extern crate piston_window;
 
 use geom::{Geom, Move, Point, Size, Table};
 
-use piston_window::{Button, Context, Graphics, MouseButton, MouseCursorEvent, PistonWindow, PressEvent, ReleaseEvent, Transformed, WindowSettings};
+use piston_window::{Button, Context, Graphics, MouseButton, MouseCursorEvent, PistonWindow,
+                    PressEvent, ReleaseEvent, Transformed, WindowSettings};
 use piston_window::types::Color;
 
 const BOARD_ROWS: usize = 8;
@@ -44,7 +45,8 @@ const GREEN: Color = [0.0, 0.5, 0.0, 1.0];
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum Cell {
-    Black, White
+    Black,
+    White,
 }
 
 impl Into<Color> for Cell {
@@ -76,7 +78,7 @@ impl Board {
         let size = Size(8, 8);
         let mut board = Board {
             cells: Table::new_empty(size, None, None),
-            turn: Some(Cell::Black)
+            turn: Some(Cell::Black),
         };
         board.cells[Point(3, 3)] = Some(Cell::White);
         board.cells[Point(4, 4)] = Some(Cell::White);
@@ -91,12 +93,12 @@ impl Board {
         }
 
         if !self.cells.contains(pt) || self.cells[pt].is_some() {
-            return false
+            return false;
         }
 
         for &mv in &Move::ALL_ADJACENTS {
             if self.can_locate_mv(pt, mv).is_some() {
-                return true
+                return true;
             }
         }
 
@@ -107,25 +109,25 @@ impl Board {
         let turn = if let Some(turn) = self.turn {
             turn
         } else {
-            return None
+            return None;
         };
 
         let flip = turn.flip();
 
         let mut pt = pt + mv;
         if !self.cells.contains(pt) || self.cells[pt] != Some(flip) {
-            return None
+            return None;
         }
 
         while self.cells.contains(pt) {
             if let Some(x) = self.cells[pt] {
                 pt = pt + mv;
                 if x == flip {
-                    continue
+                    continue;
                 }
-                return Some(pt)
+                return Some(pt);
             }
-            return None
+            return None;
         }
         None
     }
@@ -134,12 +136,12 @@ impl Board {
         let turn = if let Some(turn) = self.turn {
             turn
         } else {
-            return
+            return;
         };
         let flip = turn.flip();
 
         if !self.can_locate(pt) {
-            return
+            return;
         }
 
         for &mv in &Move::ALL_ADJACENTS {
@@ -155,14 +157,14 @@ impl Board {
         self.turn = Some(flip);
         for pt in self.cells.points() {
             if self.can_locate(pt) {
-                return
+                return;
             }
         }
 
         self.turn = Some(turn);
         for pt in self.cells.points() {
             if self.can_locate(pt) {
-                return
+                return;
             }
         }
 
@@ -203,14 +205,24 @@ fn draw_2d<G>(c: Context, g: &mut G, board: &mut Board, mouse_pos: Option<Point>
             let pt = Point(x as i32, y as i32);
             match board.cells[pt] {
                 Some(cell) => {
-                    piston_window::ellipse(cell.into(), [fx, fy, DISK_DIAMETER, DISK_DIAMETER], board_trans, g);
+                    piston_window::ellipse(cell.into(),
+                                           [fx, fy, DISK_DIAMETER, DISK_DIAMETER],
+                                           board_trans,
+                                           g);
                 }
                 None => {
                     if let Some(turn) = board.turn {
                         if board.can_locate(pt) {
                             let mut color: Color = turn.into();
-                            color[3] = if mouse_pos == Some(pt) { 0.7 } else { 0.3 };
-                            piston_window::ellipse(color, [fx, fy, DISK_DIAMETER, DISK_DIAMETER], board_trans, g);
+                            color[3] = if mouse_pos == Some(pt) {
+                                0.7
+                            } else {
+                                0.3
+                            };
+                            piston_window::ellipse(color,
+                                                   [fx, fy, DISK_DIAMETER, DISK_DIAMETER],
+                                                   board_trans,
+                                                   g);
                         }
                     }
                 }
@@ -233,9 +245,11 @@ fn update_mouse_pos(e: &PistonWindow, pt: &mut Option<Point>) {
 
 fn main() {
     let window: PistonWindow = WindowSettings::new("Othello", (WINDOW_WIDTH, WINDOW_HEIGHT))
-        .exit_on_esc(true)
-        .build()
-        .unwrap_or_else(|e| panic!("Failed to build PistonWindow: {}", e));
+                                   .exit_on_esc(true)
+                                   .build()
+                                   .unwrap_or_else(|e| {
+                                       panic!("Failed to build PistonWindow: {}", e)
+                                   });
     let mut board = Board::new();
     let mut mouse_pos = None;
     let mut mouse_press_pos = None;
