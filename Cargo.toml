@@ -10,3 +10,4 @@ description = "Othello game."
 [dependencies]
 board-game-geom = "0.1"
 piston_window = "0.33"
+find_folder = "0.3"

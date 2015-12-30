@@ -11,13 +11,18 @@
 #![warn(unused_results)]
 
 extern crate board_game_geom as geom;
+extern crate find_folder;
 extern crate piston_window;
 
 use geom::{Geom, Move, Point, Size, Table};
 
-use piston_window::{Button, Context, Graphics, MouseButton, MouseCursorEvent, PistonWindow,
-                    PressEvent, ReleaseEvent, Transformed, WindowSettings};
+use piston_window::{Button, Graphics, Glyphs, PistonWindow, PressEvent, ReleaseEvent, Transformed,
+                    WindowSettings};
+use piston_window::character::CharacterCache;
+use piston_window::context::Context;
+use piston_window::text::Text;
 use piston_window::types::Color;
+use piston_window::mouse::{MouseButton, MouseCursorEvent};
 
 const BOARD_ROWS: usize = 8;
 const BOARD_COLS: usize = 8;
@@ -36,7 +41,9 @@ const DOT_DIAMETER: f64 = DOT_RADIUS * 2.0;
 const DISK_RADIUS: f64 = 32.0;
 const DISK_DIAMETER: f64 = DISK_RADIUS * 2.0;
 
-const WINDOW_WIDTH: u32 = (BOARD_H_MARGIN * 2.0 + BOARD_WIDTH + 0.5) as u32;
+const TEXT_WIDTH: f64 = 200.0;
+
+const WINDOW_WIDTH: u32 = (BOARD_H_MARGIN * 2.0 + BOARD_WIDTH + TEXT_WIDTH + 0.5) as u32;
 const WINDOW_HEIGHT: u32 = (BOARD_V_MARGIN * 2.0 + BOARD_HEIGHT + 0.5) as u32;
 
 const BLACK: Color = [0.0, 0.0, 0.0, 1.0];
@@ -170,10 +177,31 @@ impl Board {
 
         self.turn = None;
     }
+
+    fn count_black(&self) -> usize {
+        self.cells
+            .points()
+            .map(|pt| self.cells[pt])
+            .filter(|&cell| cell == Some(Cell::Black))
+            .count()
+    }
+
+    fn count_white(&self) -> usize {
+        self.cells
+            .points()
+            .map(|pt| self.cells[pt])
+            .filter(|&cell| cell == Some(Cell::White))
+            .count()
+    }
 }
 
-fn draw_2d<G>(c: Context, g: &mut G, board: &mut Board, mouse_pos: Option<Point>)
-    where G: Graphics
+fn draw_2d<G, C>(c: Context,
+                 g: &mut G,
+                 board: &mut Board,
+                 mouse_pos: Option<Point>,
+                 glyphs: &mut C)
+    where G: Graphics<Texture = C::Texture>,
+          C: CharacterCache
 {
     piston_window::clear(GREEN, g);
     let board_trans = c.transform.trans(BOARD_H_MARGIN, BOARD_V_MARGIN);
@@ -229,6 +257,31 @@ fn draw_2d<G>(c: Context, g: &mut G, board: &mut Board, mouse_pos: Option<Point>
             }
         }
     }
+
+    // draw texts
+    let text_trans = c.transform.trans(BOARD_H_MARGIN * 2.0 + BOARD_WIDTH, BOARD_V_MARGIN);
+
+    piston_window::ellipse(Cell::Black.into(),
+                           [0.0, 0.0, DISK_DIAMETER, DISK_DIAMETER],
+                           text_trans,
+                           g);
+    let black_text = format!("{:2}", board.count_black());
+    Text::new_color(BLACK, 60).draw(&black_text,
+                                    glyphs,
+                                    &c.draw_state,
+                                    text_trans.trans(DISK_DIAMETER + 30.0, 50.0),
+                                    g);
+
+    piston_window::ellipse(Cell::White.into(),
+                           [0.0, 80.0, DISK_DIAMETER, DISK_DIAMETER],
+                           text_trans,
+                           g);
+    let black_text = format!("{:2}", board.count_white());
+    Text::new_color(BLACK, 60).draw(&black_text,
+                                    glyphs,
+                                    &c.draw_state,
+                                    text_trans.trans(DISK_DIAMETER + 30.0, 80.0 + 50.0),
+                                    g);
 }
 
 fn update_mouse_pos(e: &PistonWindow, pt: &mut Option<Point>) {
@@ -250,12 +303,19 @@ fn main() {
                                    .unwrap_or_else(|e| {
                                        panic!("Failed to build PistonWindow: {}", e)
                                    });
+    let assets = find_folder::Search::ParentsThenKids(3, 3)
+                     .for_folder("assets")
+                     .unwrap();
+    let ref font = assets.join("FiraSans-Regular.ttf");
+    let factory = window.factory.borrow().clone();
+    let mut glyphs = Glyphs::new(font, factory).unwrap();
+
     let mut board = Board::new();
     let mut mouse_pos = None;
     let mut mouse_press_pos = None;
 
     for e in window {
-        e.draw_2d(|c, g| draw_2d(c, g, &mut board, mouse_pos));
+        e.draw_2d(|c, g| draw_2d(c, g, &mut board, mouse_pos, &mut glyphs));
 
         update_mouse_pos(&e, &mut mouse_pos);
 
