@@ -1,5 +1,5 @@
-use conrod::{CharacterCache, Circle, CommonBuilder, Dimensions, Frameable, FramedRectangle, IndexSlot, Point, Positionable, Scalar,
-             Theme, UpdateArgs, Mouse, Widget, WidgetKind};
+use conrod::{CharacterCache, Circle, CommonBuilder, Dimensions, Frameable, FramedRectangle,
+             IndexSlot, Point, Positionable, Scalar, Theme, UpdateArgs, Mouse, Widget, WidgetKind};
 use conrod::color::{self, Color, Colorable};
 use vecmath;
 
@@ -133,7 +133,8 @@ impl<F> OthelloDisk<F> {
     }
 }
 
-impl<F> Widget for OthelloDisk<F> where F: FnMut() {
+impl<F> Widget for OthelloDisk<F> where F: FnMut()
+{
     type State = State;
     type Style = Style;
 
@@ -227,9 +228,14 @@ impl<F> Widget for OthelloDisk<F> where F: FnMut() {
         if let Some(flow_disk) = self.flow_disk {
             let radius = style.radius(rect.w());
             let circle_color = match flow_disk {
-                Side::Black => new_interaction.color(style.black_color(ui.theme())),
-                Side::White => new_interaction.color(style.white_color(ui.theme())),
-            }.alpha(0.5);
+                                   Side::Black => {
+                                       new_interaction.color(style.black_color(ui.theme()))
+                                   }
+                                   Side::White => {
+                                       new_interaction.color(style.white_color(ui.theme()))
+                                   }
+                               }
+                               .alpha(0.5);
             let circle_idx = state.view().circle_idx.get(&mut ui);
             Circle::fill(radius)
                 .middle_of(idx)
@@ -253,33 +259,39 @@ impl Style {
     }
 
     pub fn white_color(&self, theme: &Theme) -> Color {
-        self.maybe_white_color.or(theme.widget_style::<Self>(KIND).map(|default| {
-            default.style.maybe_white_color.unwrap_or(color::white())
-        })).unwrap_or(color::white())
+        self.maybe_white_color
+            .or(theme.widget_style::<Self>(KIND)
+                     .map(|default| default.style.maybe_white_color.unwrap_or(color::white())))
+            .unwrap_or(color::white())
     }
 
     pub fn black_color(&self, theme: &Theme) -> Color {
-        self.maybe_black_color.or(theme.widget_style::<Self>(KIND).map(|default| {
-            default.style.maybe_black_color.unwrap_or(color::black())
-        })).unwrap_or(color::black())
+        self.maybe_black_color
+            .or(theme.widget_style::<Self>(KIND)
+                     .map(|default| default.style.maybe_black_color.unwrap_or(color::black())))
+            .unwrap_or(color::black())
     }
 
     pub fn background_color(&self, theme: &Theme) -> Color {
-        self.maybe_background_color.or(theme.widget_style::<Self>(KIND).map(|default| {
-            default.style.maybe_background_color.unwrap_or(theme.background_color)
-        })).unwrap_or(theme.background_color)
+        self.maybe_background_color
+            .or(theme.widget_style::<Self>(KIND).map(|default| {
+                default.style.maybe_background_color.unwrap_or(theme.background_color)
+            }))
+            .unwrap_or(theme.background_color)
     }
 
     pub fn frame(&self, theme: &Theme) -> f64 {
-        self.maybe_frame.or(theme.widget_style::<Self>(KIND).map(|default| {
-            default.style.maybe_frame.unwrap_or(theme.frame_width)
-        })).unwrap_or(theme.frame_width)
+        self.maybe_frame
+            .or(theme.widget_style::<Self>(KIND)
+                     .map(|default| default.style.maybe_frame.unwrap_or(theme.frame_width)))
+            .unwrap_or(theme.frame_width)
     }
 
     pub fn frame_color(&self, theme: &Theme) -> Color {
-        self.maybe_frame_color.or(theme.widget_style::<Self>(KIND).map(|default| {
-            default.style.maybe_frame_color.unwrap_or(theme.frame_color)
-        })).unwrap_or(theme.frame_color)
+        self.maybe_frame_color
+            .or(theme.widget_style::<Self>(KIND)
+                     .map(|default| default.style.maybe_frame_color.unwrap_or(theme.frame_color)))
+            .unwrap_or(theme.frame_color)
     }
 
     pub fn radius(&self, w: Scalar) -> Scalar {

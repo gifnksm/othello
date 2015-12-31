@@ -160,13 +160,13 @@ fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
                   let app_ref = app_ref.clone();
                   let app = app_ref.deref().borrow();
                   let mut disk = OthelloDisk::new()
-                      .background_color(app.board_color)
-                      .frame(app.frame_width)
-                      .frame_color(app.frame_color)
-                      .white_color(app.white_color)
-                      .black_color(app.black_color)
-                      .radius(app.disk_radius)
-                      .disk(app.board[pt]);
+                                     .background_color(app.board_color)
+                                     .frame(app.frame_width)
+                                     .frame_color(app.frame_color)
+                                     .white_color(app.white_color)
+                                     .black_color(app.black_color)
+                                     .radius(app.disk_radius)
+                                     .disk(app.board[pt]);
                   if let Some(turn) = app.board.turn() {
                       if app.board.can_locate(pt) {
                           disk = disk.flow_disk(Some(turn));
@@ -217,7 +217,7 @@ fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
             .align_text_right()
             .set(BLACK_LABEL_TEXT, ui);
 
-       OthelloDisk::new()
+        OthelloDisk::new()
             .w_h(app.cell_size, app.cell_size)
             .down_from(BLACK_LABEL_ICON, 0.0)
             .background_color(app.board_color)
@@ -238,29 +238,3 @@ fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
             .set(WHITE_LABEL_TEXT, ui);
     }
 }
-
-//     // draw texts
-//     let text_trans = c.transform.trans(BOARD_H_MARGIN * 2.0 + BOARD_WIDTH, BOARD_V_MARGIN);
-
-//     piston_window::ellipse(Side::Black.into(),
-//                            [0.0, 0.0, DISK_DIAMETER, DISK_DIAMETER],
-//                            text_trans,
-//                            g);
-//     let black_text = format!("}}}}}{:2}", board.num_black());
-//     Text::new_color(BLACK, 60).draw(&black_text,
-//                                     glyphs,
-//                                     &c.draw_state,
-//                                     text_trans.trans(DISK_DIAMETER + 30.0, 50.0),
-//                                     g);
-
-//     piston_window::ellipse(Side::White.into(),
-//                            [0.0, 80.0, DISK_DIAMETER, DISK_DIAMETER],
-//                            text_trans,
-//                            g);
-//     let black_text = format!("{:2}", board.num_white());
-//     Text::new_color(BLACK, 60).draw(&black_text,
-//                                     glyphs,
-//                                     &c.draw_state,
-//                                     text_trans.trans(DISK_DIAMETER + 30.0, 80.0 + 50.0),
-//                                     g);
-// }
