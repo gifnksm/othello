@@ -51,33 +51,63 @@ const WHITE: Color = [1.0, 1.0, 1.0, 1.0];
 const GREEN: Color = [0.0, 0.5, 0.0, 1.0];
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-enum Cell {
+enum Side {
     Black,
     White,
 }
 
-impl Into<Color> for Cell {
+impl Into<Color> for Side {
     fn into(self) -> Color {
         match self {
-            Cell::Black => BLACK,
-            Cell::White => WHITE,
+            Side::Black => BLACK,
+            Side::White => WHITE,
         }
     }
 }
 
-impl Cell {
-    fn flip(self) -> Cell {
+impl Side {
+    fn flip(self) -> Side {
         match self {
-            Cell::Black => Cell::White,
-            Cell::White => Cell::Black,
+            Side::Black => Side::White,
+            Side::White => Side::Black,
         }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+struct Locate {
+    num_end: usize,
+    end_points: [(Move, Point); 8],
+}
+
+impl Default for Locate {
+    fn default() -> Locate {
+        Locate {
+            num_end: 0,
+            end_points: [(Move(0, 0), Point(-1, -1)); 8],
+        }
+    }
+}
+
+impl Locate {
+    fn reset(&mut self) {
+        self.num_end = 0;
+    }
+
+    fn push(&mut self, mv: Move, end: Point) {
+        self.end_points[self.num_end] = (mv, end);
+        self.num_end += 1;
     }
 }
 
 #[derive(Clone, Debug)]
 struct Board {
-    cells: Table<Option<Cell>>,
-    turn: Option<Cell>,
+    cells: Table<Option<Side>>,
+    locates: Table<Locate>,
+    turn: Option<Side>,
+    num_black: usize,
+    num_white: usize,
+    num_locates: usize,
 }
 
 impl Board {
@@ -85,58 +115,22 @@ impl Board {
         let size = Size(8, 8);
         let mut board = Board {
             cells: Table::new_empty(size, None, None),
-            turn: Some(Cell::Black),
+            locates: Table::new_empty(size, Locate::default(), Locate::default()),
+            turn: Some(Side::Black),
+            num_black: 2,
+            num_white: 2,
+            num_locates: 0,
         };
-        board.cells[Point(3, 3)] = Some(Cell::White);
-        board.cells[Point(4, 4)] = Some(Cell::White);
-        board.cells[Point(3, 4)] = Some(Cell::Black);
-        board.cells[Point(4, 3)] = Some(Cell::Black);
+        board.cells[Point(3, 3)] = Some(Side::White);
+        board.cells[Point(4, 4)] = Some(Side::White);
+        board.cells[Point(3, 4)] = Some(Side::Black);
+        board.cells[Point(4, 3)] = Some(Side::Black);
+        board.update_locates();
         board
     }
 
     fn can_locate(&self, pt: Point) -> bool {
-        if self.turn.is_none() {
-            return false;
-        }
-
-        if !self.cells.contains(pt) || self.cells[pt].is_some() {
-            return false;
-        }
-
-        for &mv in &Move::ALL_ADJACENTS {
-            if self.can_locate_mv(pt, mv).is_some() {
-                return true;
-            }
-        }
-
-        false
-    }
-
-    fn can_locate_mv(&self, pt: Point, mv: Move) -> Option<Point> {
-        let turn = if let Some(turn) = self.turn {
-            turn
-        } else {
-            return None;
-        };
-
-        let flip = turn.flip();
-
-        let mut pt = pt + mv;
-        if !self.cells.contains(pt) || self.cells[pt] != Some(flip) {
-            return None;
-        }
-
-        while self.cells.contains(pt) {
-            if let Some(x) = self.cells[pt] {
-                pt = pt + mv;
-                if x == flip {
-                    continue;
-                }
-                return Some(pt);
-            }
-            return None;
-        }
-        None
+        self.locates[pt].num_end > 0
     }
 
     fn locate(&mut self, pt: Point) {
@@ -151,47 +145,117 @@ impl Board {
             return;
         }
 
-        for &mv in &Move::ALL_ADJACENTS {
-            if let Some(end) = self.can_locate_mv(pt, mv) {
-                let mut pt = pt;
-                while pt != end {
-                    self.cells[pt] = Some(turn);
-                    pt = pt + mv;
-                }
+        self.cells[pt] = Some(turn);
+
+        let mut num_flip = 0;
+        let loc = self.locates[pt];
+        for &(mv, end) in &loc.end_points[..loc.num_end] {
+            let mut pt = pt + mv;
+            while pt != end {
+                num_flip += 1;
+                self.cells[pt] = Some(turn);
+                pt = pt + mv;
+            }
+        }
+        debug_assert!(num_flip > 0);
+
+        match turn {
+            Side::Black => {
+                self.num_black += num_flip + 1;
+                self.num_white -= num_flip;
+            }
+            Side::White => {
+                self.num_white += num_flip + 1;
+                self.num_black -= num_flip;
             }
         }
 
         self.turn = Some(flip);
-        for pt in self.cells.points() {
-            if self.can_locate(pt) {
-                return;
-            }
+        self.update_locates();
+        if self.num_locates > 0 {
+            return;
         }
 
         self.turn = Some(turn);
-        for pt in self.cells.points() {
-            if self.can_locate(pt) {
-                return;
-            }
+        self.update_locates();
+        if self.num_locates > 0 {
+            return;
         }
 
         self.turn = None;
     }
 
-    fn count_black(&self) -> usize {
-        self.cells
-            .points()
-            .map(|pt| self.cells[pt])
-            .filter(|&cell| cell == Some(Cell::Black))
-            .count()
+    fn num_black(&self) -> usize {
+        if cfg!(debug) {
+            let cnt = self.cells
+                          .points()
+                          .map(|pt| self.cells[pt])
+                          .filter(|&cell| cell == Some(Side::Black))
+                          .count();
+            assert_eq!(cnt, self.num_black);
+        }
+        self.num_black
     }
 
-    fn count_white(&self) -> usize {
-        self.cells
-            .points()
-            .map(|pt| self.cells[pt])
-            .filter(|&cell| cell == Some(Cell::White))
-            .count()
+    fn num_white(&self) -> usize {
+        if cfg!(debug) {
+            let cnt = self.cells
+                          .points()
+                          .map(|pt| self.cells[pt])
+                          .filter(|&cell| cell == Some(Side::White))
+                          .count();
+            assert_eq!(cnt, self.num_white);
+        }
+        self.num_white
+    }
+
+    fn update_locates(&mut self) {
+        self.num_locates = 0;
+
+        if let Some(turn) = self.turn {
+            for pt in self.cells.points() {
+                let mut loc = Locate::default();
+
+                if self.cells[pt].is_none() {
+                    for &mv in &Move::ALL_ADJACENTS {
+                        if let Some(end) = self.can_locate_mv(turn, pt, mv) {
+                            loc.push(mv, end);
+                        }
+                    }
+
+                    if loc.num_end > 0 {
+                        self.num_locates += 1;
+                    }
+                }
+
+                self.locates[pt] = loc;
+            }
+        } else {
+            for pt in self.cells.points() {
+                self.locates[pt].reset();
+            }
+        };
+    }
+
+    fn can_locate_mv(&self, turn: Side, pt: Point, mv: Move) -> Option<Point> {
+        let flip = turn.flip();
+
+        let mut pt = pt + mv;
+        if !self.cells.contains(pt) || self.cells[pt] != Some(flip) {
+            return None;
+        }
+
+        while self.cells.contains(pt) {
+            if let Some(x) = self.cells[pt] {
+                if x == flip {
+                    pt = pt + mv;
+                    continue;
+                }
+                return Some(pt);
+            }
+            return None;
+        }
+        None
     }
 }
 
@@ -261,22 +325,22 @@ fn draw_2d<G, C>(c: Context,
     // draw texts
     let text_trans = c.transform.trans(BOARD_H_MARGIN * 2.0 + BOARD_WIDTH, BOARD_V_MARGIN);
 
-    piston_window::ellipse(Cell::Black.into(),
+    piston_window::ellipse(Side::Black.into(),
                            [0.0, 0.0, DISK_DIAMETER, DISK_DIAMETER],
                            text_trans,
                            g);
-    let black_text = format!("{:2}", board.count_black());
+    let black_text = format!("{:2}", board.num_black());
     Text::new_color(BLACK, 60).draw(&black_text,
                                     glyphs,
                                     &c.draw_state,
                                     text_trans.trans(DISK_DIAMETER + 30.0, 50.0),
                                     g);
 
-    piston_window::ellipse(Cell::White.into(),
+    piston_window::ellipse(Side::White.into(),
                            [0.0, 80.0, DISK_DIAMETER, DISK_DIAMETER],
                            text_trans,
                            g);
-    let black_text = format!("{:2}", board.count_white());
+    let black_text = format!("{:2}", board.num_white());
     Text::new_color(BLACK, 60).draw(&black_text,
                                     glyphs,
                                     &c.draw_state,
