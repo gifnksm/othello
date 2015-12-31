@@ -47,8 +47,7 @@ impl Index<Point> for Board {
 }
 
 impl Board {
-    pub fn new() -> Board {
-        let size = Size(8, 8);
+    pub fn new(size: Size) -> Board {
         let mut board = Board {
             cells: Table::new_empty(size, None, None),
             locates: Table::new_empty(size, Locate::default(), Locate::default()),
@@ -63,6 +62,10 @@ impl Board {
         board.cells[Point(4, 3)] = Some(Side::Black);
         board.update_locates();
         board
+    }
+
+    pub fn size(&self) -> Size {
+        self.cells.size()
     }
 
     pub fn can_locate(&self, pt: Point) -> bool {

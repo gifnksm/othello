@@ -11,23 +11,31 @@
 #![warn(unused_results)]
 
 extern crate board_game_geom as geom;
+#[macro_use]
+extern crate conrod;
 extern crate find_folder;
 extern crate piston_window;
+extern crate vecmath;
 
-use geom::Point;
+use std::cell::RefCell;
+use std::ops::Deref;
+use std::rc::Rc;
 
-use piston_window::{Button, Graphics, Glyphs, PistonWindow, PressEvent, ReleaseEvent, Transformed,
-                    WindowSettings};
-use piston_window::character::CharacterCache;
-use piston_window::context::Context;
-use piston_window::text::Text;
-use piston_window::types::Color;
-use piston_window::mouse::{MouseButton, MouseCursorEvent};
+use geom::{Point, Size};
+
+use conrod::{Canvas, Circle, Frameable, Sizeable, Text, Theme, Widget, WidgetMatrix};
+use conrod::color::{self, Color, Colorable};
+use conrod::Positionable;
+
+use piston_window::{Glyphs, PistonWindow, UpdateEvent, WindowSettings};
 
 use board::Board;
+use othello_disk::OthelloDisk;
 
-const BOARD_ROWS: usize = 8;
+type Ui = conrod::Ui<Glyphs>;
+
 const BOARD_COLS: usize = 8;
+const BOARD_ROWS: usize = 8;
 
 const CELL_WIDTH: f64 = 80.0;
 const CELL_HEIGHT: f64 = 80.0;
@@ -37,36 +45,18 @@ const BOARD_HEIGHT: f64 = CELL_HEIGHT * (BOARD_ROWS as f64);
 const BOARD_H_MARGIN: f64 = 40.0;
 const BOARD_V_MARGIN: f64 = 40.0;
 
-const DOT_RADIUS: f64 = 6.0;
-const DOT_DIAMETER: f64 = DOT_RADIUS * 2.0;
-
-const DISK_RADIUS: f64 = 32.0;
-const DISK_DIAMETER: f64 = DISK_RADIUS * 2.0;
-
 const TEXT_WIDTH: f64 = 200.0;
 
 const WINDOW_WIDTH: u32 = (BOARD_H_MARGIN * 2.0 + BOARD_WIDTH + TEXT_WIDTH + 0.5) as u32;
 const WINDOW_HEIGHT: u32 = (BOARD_V_MARGIN * 2.0 + BOARD_HEIGHT + 0.5) as u32;
 
-const BLACK: Color = [0.0, 0.0, 0.0, 1.0];
-const WHITE: Color = [1.0, 1.0, 1.0, 1.0];
-const GREEN: Color = [0.0, 0.5, 0.0, 1.0];
-
 mod board;
+mod othello_disk;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Side {
     Black,
     White,
-}
-
-impl Into<Color> for Side {
-    fn into(self) -> Color {
-        match self {
-            Side::Black => BLACK,
-            Side::White => WHITE,
-        }
-    }
 }
 
 impl Side {
@@ -78,103 +68,35 @@ impl Side {
     }
 }
 
-fn draw_2d<G, C>(c: Context,
-                 g: &mut G,
-                 board: &mut Board,
-                 mouse_pos: Option<Point>,
-                 glyphs: &mut C)
-    where G: Graphics<Texture = C::Texture>,
-          C: CharacterCache
-{
-    piston_window::clear(GREEN, g);
-    let board_trans = c.transform.trans(BOARD_H_MARGIN, BOARD_V_MARGIN);
+#[derive(Clone, Debug)]
+struct App {
+    board: Board,
 
-    // draw lines
-    for y in 0..(BOARD_ROWS + 1) {
-        let fy = (y as f64) * CELL_HEIGHT;
-        piston_window::line(BLACK, 1.0, [0.0, fy, BOARD_WIDTH, fy], board_trans, g);
-    }
-    for x in 0..(BOARD_COLS + 1) {
-        let fx = (x as f64) * CELL_WIDTH;
-        piston_window::line(BLACK, 1.0, [fx, 0.0, fx, BOARD_HEIGHT], board_trans, g);
-    }
+    frame_width: f64,
+    cell_size: f64,
+    disk_radius: f64,
+    dot_radius: f64,
 
-    // draw dots
-    for x in 0..2 {
-        let fx = ((x * 4 + 2) as f64) * CELL_WIDTH - DOT_RADIUS;
-        for y in 0..2 {
-            let fy = ((y * 4 + 2) as f64) * CELL_HEIGHT - DOT_RADIUS;
-            piston_window::ellipse(BLACK, [fx, fy, DOT_DIAMETER, DOT_DIAMETER], board_trans, g)
-        }
-    }
-
-    // draw disks
-    for x in 0..BOARD_COLS {
-        let fx = (x as f64 + 0.5) * CELL_WIDTH - DISK_RADIUS;
-        for y in 0..BOARD_ROWS {
-            let fy = (y as f64 + 0.5) * CELL_HEIGHT - DISK_RADIUS;
-            let pt = Point(x as i32, y as i32);
-            match board[pt] {
-                Some(cell) => {
-                    piston_window::ellipse(cell.into(),
-                                           [fx, fy, DISK_DIAMETER, DISK_DIAMETER],
-                                           board_trans,
-                                           g);
-                }
-                None => {
-                    if let Some(turn) = board.turn() {
-                        if board.can_locate(pt) {
-                            let mut color: Color = turn.into();
-                            color[3] = if mouse_pos == Some(pt) {
-                                0.7
-                            } else {
-                                0.3
-                            };
-                            piston_window::ellipse(color,
-                                                   [fx, fy, DISK_DIAMETER, DISK_DIAMETER],
-                                                   board_trans,
-                                                   g);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // draw texts
-    let text_trans = c.transform.trans(BOARD_H_MARGIN * 2.0 + BOARD_WIDTH, BOARD_V_MARGIN);
-
-    piston_window::ellipse(Side::Black.into(),
-                           [0.0, 0.0, DISK_DIAMETER, DISK_DIAMETER],
-                           text_trans,
-                           g);
-    let black_text = format!("{:2}", board.num_black());
-    Text::new_color(BLACK, 60).draw(&black_text,
-                                    glyphs,
-                                    &c.draw_state,
-                                    text_trans.trans(DISK_DIAMETER + 30.0, 50.0),
-                                    g);
-
-    piston_window::ellipse(Side::White.into(),
-                           [0.0, 80.0, DISK_DIAMETER, DISK_DIAMETER],
-                           text_trans,
-                           g);
-    let black_text = format!("{:2}", board.num_white());
-    Text::new_color(BLACK, 60).draw(&black_text,
-                                    glyphs,
-                                    &c.draw_state,
-                                    text_trans.trans(DISK_DIAMETER + 30.0, 80.0 + 50.0),
-                                    g);
+    frame_color: Color,
+    board_color: Color,
+    white_color: Color,
+    black_color: Color,
 }
 
-fn update_mouse_pos(e: &PistonWindow, pt: &mut Option<Point>) {
-    if let Some(pos) = e.mouse_cursor_args() {
-        let fx = (pos[0] - BOARD_H_MARGIN) / CELL_WIDTH;
-        let fy = (pos[1] - BOARD_V_MARGIN) / CELL_HEIGHT;
-        if fx < 0.0 || fx > (BOARD_COLS as f64) || fy < 0.0 || fy > (BOARD_ROWS as f64) {
-            *pt = None;
-        } else {
-            *pt = Some(Point(fx as i32, fy as i32));
+impl Default for App {
+    fn default() -> App {
+        App {
+            board: Board::new(Size(8, 8)),
+
+            frame_width: 1.0,
+            cell_size: 80.0,
+            disk_radius: 32.0,
+            dot_radius: 6.0,
+
+            frame_color: color::black(),
+            board_color: color::rgba(0.0, 0.5, 0.0, 1.0),
+            white_color: color::white(),
+            black_color: color::black(),
         }
     }
 }
@@ -182,41 +104,163 @@ fn update_mouse_pos(e: &PistonWindow, pt: &mut Option<Point>) {
 fn main() {
     let window: PistonWindow = WindowSettings::new("Othello", (WINDOW_WIDTH, WINDOW_HEIGHT))
                                    .exit_on_esc(true)
+                                   .vsync(true)
                                    .build()
                                    .unwrap_or_else(|e| {
                                        panic!("Failed to build PistonWindow: {}", e)
                                    });
-    let assets = find_folder::Search::ParentsThenKids(3, 3)
-                     .for_folder("assets")
-                     .unwrap();
-    let ref font = assets.join("FiraSans-Regular.ttf");
-    let factory = window.factory.borrow().clone();
-    let mut glyphs = Glyphs::new(font, factory).unwrap();
 
-    let mut board = Board::new();
-    let mut mouse_pos = None;
-    let mut mouse_press_pos = None;
+    let mut ui = {
+        let assets = find_folder::Search::KidsThenParents(3, 5)
+                         .for_folder("assets")
+                         .unwrap();
+        let ref font_path = assets.join("FiraSans-Regular.ttf");
+        let theme = Theme::default();
+        let factory = window.factory.borrow().clone();
+        let glyph_cache = Glyphs::new(font_path, factory).unwrap();
+        Ui::new(glyph_cache, theme)
+    };
 
-    for e in window {
-        e.draw_2d(|c, g| draw_2d(c, g, &mut board, mouse_pos, &mut glyphs));
+    let app = Rc::new(RefCell::new(App::default()));
+    for event in window {
+        ui.handle_event(&event);
 
-        update_mouse_pos(&e, &mut mouse_pos);
-
-        if let Some(button) = e.press_args() {
-            if button == Button::Mouse(MouseButton::Left) {
-                mouse_press_pos = mouse_pos;
-            }
-        }
-
-        if let Some(button) = e.release_args() {
-            if button == Button::Mouse(MouseButton::Left) {
-                if mouse_pos == mouse_press_pos {
-                    if let Some(pt) = mouse_pos {
-                        board.locate(pt);
-                    }
-                }
-                mouse_press_pos = None;
-            }
-        }
+        let _ = event.update(|_| ui.set_widgets(|ui| set_widgets(ui, app.clone())));
+        event.draw_2d(|c, g| ui.draw_if_changed(c, g));
     }
 }
+
+widget_ids! {
+    CANVAS,
+    BOARD,
+    DOT with 4,
+    BLACK_LABEL_ICON,
+    BLACK_LABEL_TEXT,
+    WHITE_LABEL_ICON,
+    WHITE_LABEL_TEXT,
+}
+
+fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
+    let Size(cols, rows) = {
+        let app = app_ref.deref().borrow();
+        Canvas::new().color(app.board_color).set(CANVAS, ui);
+        app.board.size()
+    };
+
+    let matrix = {
+        let app = app_ref.deref().borrow();
+        WidgetMatrix::new(cols as usize, rows as usize)
+            .top_left_with_margins_on(CANVAS, 40.0, 40.0)
+            .w_h(app.cell_size * (cols as f64), app.cell_size * (rows as f64))
+    };
+
+    matrix.each_widget(|_n, col, row| {
+              let pt = Point(row as i32, col as i32);
+              let disk = {
+                  let app_ref = app_ref.clone();
+                  let app = app_ref.deref().borrow();
+                  let mut disk = OthelloDisk::new()
+                      .background_color(app.board_color)
+                      .frame(app.frame_width)
+                      .frame_color(app.frame_color)
+                      .white_color(app.white_color)
+                      .black_color(app.black_color)
+                      .radius(app.disk_radius)
+                      .disk(app.board[pt]);
+                  if let Some(turn) = app.board.turn() {
+                      if app.board.can_locate(pt) {
+                          disk = disk.flow_disk(Some(turn));
+                      }
+                  }
+                  disk
+              };
+
+              let app_ref = app_ref.clone();
+              disk.react(move || {
+                  app_ref.borrow_mut().board.locate(pt);
+              })
+          })
+          .set(BOARD, ui);
+
+    {
+        let app = app_ref.deref().borrow();
+        let x = app.cell_size * ((cols / 4) as f64);
+        let y = app.cell_size * ((rows / 4) as f64);
+        let signs = &[(-1.0, 1.0), (1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)];
+        for (i, &(sx, sy)) in signs.iter().enumerate() {
+            Circle::fill(app.dot_radius)
+                .x_y_relative_to(BOARD, sx * x, sy * y)
+                .color(app.frame_color)
+                .set(DOT + i, ui);
+        }
+    }
+
+    {
+        let app = app_ref.deref().borrow();
+        OthelloDisk::new()
+            .w_h(app.cell_size, app.cell_size)
+            .right_from(BOARD, 40.0)
+            .background_color(app.board_color)
+            .frame(0.0)
+            .white_color(app.white_color)
+            .black_color(app.black_color)
+            .radius(app.disk_radius)
+            .disk(Some(Side::Black))
+            .react(|| {})
+            .set(BLACK_LABEL_ICON, ui);
+
+        let text = format!("{}", app.board.num_black());
+        Text::new(&text)
+            .w(90.0)
+            .right_from(BLACK_LABEL_ICON, 0.0)
+            .font_size(60)
+            .align_text_right()
+            .set(BLACK_LABEL_TEXT, ui);
+
+       OthelloDisk::new()
+            .w_h(app.cell_size, app.cell_size)
+            .down_from(BLACK_LABEL_ICON, 0.0)
+            .background_color(app.board_color)
+            .frame(0.0)
+            .white_color(app.white_color)
+            .white_color(app.white_color)
+            .radius(app.disk_radius)
+            .disk(Some(Side::White))
+            .react(|| {})
+            .set(WHITE_LABEL_ICON, ui);
+
+        let text = format!("{}", app.board.num_white());
+        Text::new(&text)
+            .w(90.0)
+            .right_from(WHITE_LABEL_ICON, 0.0)
+            .font_size(60)
+            .align_text_right()
+            .set(WHITE_LABEL_TEXT, ui);
+    }
+}
+
+//     // draw texts
+//     let text_trans = c.transform.trans(BOARD_H_MARGIN * 2.0 + BOARD_WIDTH, BOARD_V_MARGIN);
+
+//     piston_window::ellipse(Side::Black.into(),
+//                            [0.0, 0.0, DISK_DIAMETER, DISK_DIAMETER],
+//                            text_trans,
+//                            g);
+//     let black_text = format!("}}}}}{:2}", board.num_black());
+//     Text::new_color(BLACK, 60).draw(&black_text,
+//                                     glyphs,
+//                                     &c.draw_state,
+//                                     text_trans.trans(DISK_DIAMETER + 30.0, 50.0),
+//                                     g);
+
+//     piston_window::ellipse(Side::White.into(),
+//                            [0.0, 80.0, DISK_DIAMETER, DISK_DIAMETER],
+//                            text_trans,
+//                            g);
+//     let black_text = format!("{:2}", board.num_white());
+//     Text::new_color(BLACK, 60).draw(&black_text,
+//                                     glyphs,
+//                                     &c.draw_state,
+//                                     text_trans.trans(DISK_DIAMETER + 30.0, 80.0 + 50.0),
+//                                     g);
+// }
