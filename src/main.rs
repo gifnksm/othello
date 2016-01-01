@@ -34,22 +34,6 @@ use othello_disk::OthelloDisk;
 
 type Ui = conrod::Ui<Glyphs>;
 
-const BOARD_COLS: usize = 8;
-const BOARD_ROWS: usize = 8;
-
-const CELL_WIDTH: f64 = 80.0;
-const CELL_HEIGHT: f64 = 80.0;
-
-const BOARD_WIDTH: f64 = CELL_WIDTH * (BOARD_COLS as f64);
-const BOARD_HEIGHT: f64 = CELL_HEIGHT * (BOARD_ROWS as f64);
-const BOARD_H_MARGIN: f64 = 40.0;
-const BOARD_V_MARGIN: f64 = 40.0;
-
-const TEXT_WIDTH: f64 = 200.0;
-
-const WINDOW_WIDTH: u32 = (BOARD_H_MARGIN * 2.0 + BOARD_WIDTH + TEXT_WIDTH + 0.5) as u32;
-const WINDOW_HEIGHT: u32 = (BOARD_V_MARGIN * 2.0 + BOARD_HEIGHT + 0.5) as u32;
-
 mod board;
 mod othello_disk;
 
@@ -76,6 +60,8 @@ struct App {
     cell_size: f64,
     disk_radius: f64,
     dot_radius: f64,
+    board_margin: f64,
+    indicator_text_width: f64,
 
     frame_color: Color,
     board_color: Color,
@@ -92,6 +78,8 @@ impl Default for App {
             cell_size: 80.0,
             disk_radius: 32.0,
             dot_radius: 6.0,
+            board_margin: 40.0,
+            indicator_text_width: 90.0,
 
             frame_color: color::black(),
             board_color: color::rgba(0.0, 0.5, 0.0, 1.0),
@@ -102,13 +90,25 @@ impl Default for App {
 }
 
 fn main() {
-    let window: PistonWindow = WindowSettings::new("Othello", (WINDOW_WIDTH, WINDOW_HEIGHT))
-                                   .exit_on_esc(true)
-                                   .vsync(true)
-                                   .build()
-                                   .unwrap_or_else(|e| {
-                                       panic!("Failed to build PistonWindow: {}", e)
-                                   });
+    let app_ref = Rc::new(RefCell::new(App::default()));
+
+    let window: PistonWindow = {
+        let app = app_ref.deref().borrow();
+
+        let board_width = app.cell_size * (app.board.size().1 as f64);
+        let indicator_width = app.cell_size + app.indicator_text_width;
+        let width = board_width + app.board_margin * 2.0 + indicator_width + app.board_margin;
+
+        let board_height = app.cell_size * (app.board.size().0 as f64);
+        let indicator_height = app.cell_size * 2.0;
+        let height = app.board_margin * 2.0 + f64::max(board_height, indicator_height);
+
+        WindowSettings::new("Othello", (width as u32, height as u32))
+            .exit_on_esc(true)
+            .vsync(true)
+            .build()
+            .unwrap_or_else(|e| panic!("Failed to build PistonWindow: {}", e))
+    };
 
     let mut ui = {
         let assets = find_folder::Search::KidsThenParents(3, 5)
@@ -121,11 +121,10 @@ fn main() {
         Ui::new(glyph_cache, theme)
     };
 
-    let app = Rc::new(RefCell::new(App::default()));
     for event in window {
         ui.handle_event(&event);
 
-        let _ = event.update(|_| ui.set_widgets(|ui| set_widgets(ui, app.clone())));
+        let _ = event.update(|_| ui.set_widgets(|ui| set_widgets(ui, app_ref.clone())));
         event.draw_2d(|c, g| ui.draw_if_changed(c, g));
     }
 }
@@ -134,14 +133,12 @@ widget_ids! {
     CANVAS,
     BOARD,
     DOT with 4,
-    BLACK_LABEL_ICON,
-    BLACK_LABEL_TEXT,
-    WHITE_LABEL_ICON,
-    WHITE_LABEL_TEXT,
+    INDICATOR_LABEL_ICON with 2,
+    INDICATOR_LABEL_TEXT with 2,
 }
 
 fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
-    let Size(cols, rows) = {
+    let Size(rows, cols) = {
         let app = app_ref.deref().borrow();
         Canvas::new().color(app.board_color).set(CANVAS, ui);
         app.board.size()
@@ -150,7 +147,7 @@ fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
     let matrix = {
         let app = app_ref.deref().borrow();
         WidgetMatrix::new(cols as usize, rows as usize)
-            .top_left_with_margins_on(CANVAS, 40.0, 40.0)
+            .top_left_with_margins_on(CANVAS, app.board_margin, app.board_margin)
             .w_h(app.cell_size * (cols as f64), app.cell_size * (rows as f64))
     };
 
@@ -195,46 +192,32 @@ fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         }
     }
 
-    {
+    for (i, &side) in [Side::Black, Side::White].iter().enumerate() {
         let app = app_ref.deref().borrow();
-        OthelloDisk::new()
-            .w_h(app.cell_size, app.cell_size)
-            .right_from(BOARD, 40.0)
-            .background_color(app.board_color)
-            .frame(0.0)
-            .white_color(app.white_color)
-            .black_color(app.black_color)
-            .radius(app.disk_radius)
-            .disk(Some(Side::Black))
-            .react(|| {})
-            .set(BLACK_LABEL_ICON, ui);
+        if side == Side::Black {
+            OthelloDisk::new().right_from(BOARD, app.board_margin)
+        } else {
+            OthelloDisk::new().down_from(INDICATOR_LABEL_ICON + (i - 1), 0.0)
+        }
+        .w_h(app.cell_size, app.cell_size)
+        .background_color(app.board_color)
+        .frame(0.0)
+        .white_color(app.white_color)
+        .black_color(app.black_color)
+        .radius(app.disk_radius)
+        .disk(Some(side))
+        .react(|| {})
+        .set(INDICATOR_LABEL_ICON + i, ui);
 
-        let text = format!("{}", app.board.num_black());
+        let text = match side {
+            Side::Black => app.board.num_black().to_string(),
+            Side::White => app.board.num_white().to_string(),
+        };
         Text::new(&text)
-            .w(90.0)
-            .right_from(BLACK_LABEL_ICON, 0.0)
+            .w(app.indicator_text_width)
+            .right_from(INDICATOR_LABEL_ICON + i, 0.0)
             .font_size(60)
             .align_text_right()
-            .set(BLACK_LABEL_TEXT, ui);
-
-        OthelloDisk::new()
-            .w_h(app.cell_size, app.cell_size)
-            .down_from(BLACK_LABEL_ICON, 0.0)
-            .background_color(app.board_color)
-            .frame(0.0)
-            .white_color(app.white_color)
-            .white_color(app.white_color)
-            .radius(app.disk_radius)
-            .disk(Some(Side::White))
-            .react(|| {})
-            .set(WHITE_LABEL_ICON, ui);
-
-        let text = format!("{}", app.board.num_white());
-        Text::new(&text)
-            .w(90.0)
-            .right_from(WHITE_LABEL_ICON, 0.0)
-            .font_size(60)
-            .align_text_right()
-            .set(WHITE_LABEL_TEXT, ui);
+            .set(INDICATOR_LABEL_TEXT + i, ui);
     }
 }

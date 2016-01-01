@@ -52,14 +52,24 @@ impl Board {
             cells: Table::new_empty(size, None, None),
             locates: Table::new_empty(size, Locate::default(), Locate::default()),
             turn: Some(Side::Black),
-            num_black: 2,
-            num_white: 2,
+            num_black: 0,
+            num_white: 0,
             num_locate: 0,
         };
-        board.cells[Point(3, 3)] = Some(Side::White);
-        board.cells[Point(4, 4)] = Some(Side::White);
-        board.cells[Point(3, 4)] = Some(Side::Black);
-        board.cells[Point(4, 3)] = Some(Side::Black);
+
+        let origin = Point(size.0 / 2 - 1, size.1 / 2 - 1);
+        for &mv in &[Move(0, 0), Move(1, 1)] {
+            if board.cells.contains(origin + mv) {
+                board.cells[origin + mv] = Some(Side::White);
+                board.num_white += 1;
+            }
+        }
+        for &mv in &[Move(0, 1), Move(1, 0)] {
+            if board.cells.contains(origin + mv) {
+                board.cells[origin + mv] = Some(Side::Black);
+                board.num_black += 1;
+            }
+        }
         board.update_locates();
         board
     }
