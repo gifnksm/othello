@@ -20,11 +20,12 @@ extern crate vecmath;
 use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;
+use std::str::FromStr;
 
 use geom::{Point, Size};
 
-use conrod::{Canvas, Circle, Frameable, LineStyle, Rectangle, Sizeable, Text, Theme, Widget,
-             WidgetMatrix};
+use conrod::{Button, Canvas, Circle, DropDownList, Frameable, Labelable, LineStyle, Rectangle,
+             Sizeable, Text, Theme, Widget, WidgetMatrix};
 use conrod::color::{self, Color, Colorable};
 use conrod::Positionable;
 
@@ -55,8 +56,99 @@ impl Side {
 
 #[derive(Clone, Debug)]
 struct App {
-    board: Board,
+    state: State,
+    game_config: GameConfig,
     view_config: ViewConfig,
+}
+
+impl Default for App {
+    fn default() -> App {
+        App {
+            state: State::Start(StartState::default()),
+            game_config: GameConfig::default(),
+            view_config: ViewConfig::default(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+enum State {
+    Start(StartState),
+    Play(PlayState),
+}
+
+impl State {
+    fn unwrap_start(&self) -> &StartState {
+        match self {
+            &State::Start(ref start_ref) => start_ref,
+            _ => panic!(),
+        }
+    }
+
+    fn unwrap_mut_start(&mut self) -> &mut StartState {
+        match self {
+            &mut State::Start(ref mut start_ref) => start_ref,
+            _ => panic!(),
+        }
+    }
+
+    fn unwrap_play(&self) -> &PlayState {
+        match self {
+            &State::Play(ref play_ref) => play_ref,
+            _ => panic!(),
+        }
+    }
+
+    fn unwrap_mut_play(&mut self) -> &mut PlayState {
+        match self {
+            &mut State::Play(ref mut play_ref) => play_ref,
+            _ => panic!(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct StartState {
+    ddl_rows_selected_idx: Option<usize>,
+    ddl_cols_selected_idx: Option<usize>,
+    ddl_rows: Vec<String>,
+    ddl_cols: Vec<String>,
+}
+
+impl Default for StartState {
+    fn default() -> StartState {
+        let ddl = (2..11).map(|n| n.to_string()).collect::<Vec<_>>();
+        StartState {
+            ddl_rows_selected_idx: ddl.iter().position(|x| x == "8"),
+            ddl_cols_selected_idx: ddl.iter().position(|x| x == "8"),
+            ddl_rows: ddl.clone(),
+            ddl_cols: ddl,
+        }
+
+    }
+}
+
+#[derive(Clone, Debug)]
+struct PlayState {
+    board: Board,
+}
+
+impl PlayState {
+    fn new(size: Size) -> PlayState {
+        PlayState { board: Board::new(size) }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+struct GameConfig {
+    rows: i32,
+    cols: i32,
+}
+
+impl Default for GameConfig {
+    fn default() -> GameConfig {
+        GameConfig { rows: 8, cols: 8 }
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -92,18 +184,7 @@ impl Default for ViewConfig {
     }
 }
 
-impl Default for App {
-    fn default() -> App {
-        App {
-            board: Board::new(Size(8, 8)),
-            view_config: ViewConfig::default(),
-        }
-    }
-}
-
 fn main() {
-    let app_ref = Rc::new(RefCell::new(App::default()));
-
     let window: PistonWindow = {
         WindowSettings::new("Othello", (1024, 768))
             .exit_on_esc(true)
@@ -123,6 +204,7 @@ fn main() {
         Ui::new(glyph_cache, theme)
     };
 
+    let app_ref = Rc::new(RefCell::new(App::default()));
     for event in window {
         ui.handle_event(&event);
 
@@ -133,7 +215,13 @@ fn main() {
 
 widget_ids! {
     CANVAS,
-    OTHELLO_CANVAS,
+
+    START_BUTTON,
+    TIMES_LABEL,
+    ROWS_DDL,
+    COLS_DDL,
+
+    PLAY_CANVAS,
     BOARD,
     DOT with 4,
     INDICATOR_LABEL_ICON with 2,
@@ -141,19 +229,85 @@ widget_ids! {
 }
 
 fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
-    let (Size(rows, cols), vc) = {
+    let func: fn(ui: &mut Ui, Rc<RefCell<App>>) = {
         let app = app_ref.deref().borrow();
-        let size = app.board.size();
-        (size, app.view_config)
+        match app.state {
+            State::Start(_) => set_widgets_start,
+            State::Play(_) => set_widgets_play,
+        }
+    };
+    func(ui, app_ref.clone())
+}
+
+fn set_widgets_start(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
+    let (gc, vc) = {
+        let app = app_ref.deref().borrow();
+        (app.game_config, app.view_config)
+    };
+
+    Canvas::new().color(vc.board_color).scrolling(true).set(CANVAS, ui);
+    Text::new(&"x")
+        .w_h(30.0, 50.0)
+        .font_size(40)
+        .align_text_middle()
+        .mid_top_with_margin_on(CANVAS, 40.0)
+        .set(TIMES_LABEL, ui);
+
+    {
+        let mut app = app_ref.deref().borrow_mut();
+        let mut rows = app.game_config.rows;
+        let mut cols = app.game_config.cols;
+        {
+            let start = app.state.unwrap_mut_start();
+            DropDownList::new(&mut start.ddl_rows, &mut start.ddl_rows_selected_idx)
+                .w_h(50.0, 50.0)
+                .left_from(TIMES_LABEL, 30.0)
+                .label("Rows")
+                .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
+                    *selected_idx = Some(new_idx);
+                    rows = i32::from_str(string).unwrap();
+                })
+                .set(ROWS_DDL, ui);
+            DropDownList::new(&mut start.ddl_cols, &mut start.ddl_cols_selected_idx)
+                .w_h(50.0, 50.0)
+                .right_from(TIMES_LABEL, 30.0)
+                .label("Cols")
+                .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
+                    *selected_idx = Some(new_idx);
+                    cols = i32::from_str(string).unwrap();
+                })
+                .set(COLS_DDL, ui);
+        }
+        app.game_config.rows = rows;
+        app.game_config.cols = cols;
+    }
+
+
+    Button::new()
+        .w_h(200.0, 50.0)
+        .down_from(TIMES_LABEL, 40.0)
+        .align_middle_x_of(TIMES_LABEL)
+        .label("start")
+        .react(|| {
+            let mut app = app_ref.deref().borrow_mut();
+            app.state = State::Play(PlayState::new(Size(gc.rows, gc.cols)));
+        })
+        .set(START_BUTTON, ui);
+}
+
+fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
+    let (gc, vc) = {
+        let app = app_ref.deref().borrow();
+        (app.game_config, app.view_config)
     };
 
     Canvas::new().color(vc.board_color).scrolling(true).set(CANVAS, ui);
 
-    let board_width = vc.cell_size * (cols as f64);
+    let board_width = vc.cell_size * (gc.cols as f64);
     let indicator_width = vc.cell_size + vc.indicator_text_width;
     let width = board_width + vc.board_margin * 2.0 + indicator_width + vc.board_margin;
 
-    let board_height = vc.cell_size * (rows as f64);
+    let board_height = vc.cell_size * (gc.rows as f64);
     let indicator_height = vc.cell_size * 2.0;
     let height = vc.board_margin * 2.0 + f64::max(board_height, indicator_height);
 
@@ -166,16 +320,18 @@ fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         (true, false) => rect.mid_left_of(CANVAS),
         (false, false) => rect.middle_of(CANVAS),
     }
-    .set(OTHELLO_CANVAS, ui);
+    .set(PLAY_CANVAS, ui);
 
-    WidgetMatrix::new(cols as usize, rows as usize)
-        .top_left_with_margins_on(OTHELLO_CANVAS, vc.board_margin, vc.board_margin)
-        .w_h(vc.cell_size * (cols as f64), vc.cell_size * (rows as f64))
+    WidgetMatrix::new(gc.cols as usize, gc.rows as usize)
+        .top_left_with_margins_on(PLAY_CANVAS, vc.board_margin, vc.board_margin)
+        .w_h(vc.cell_size * (gc.cols as f64),
+             vc.cell_size * (gc.rows as f64))
         .each_widget(|_n, col, row| {
             let pt = Point(row as i32, col as i32);
             let disk = {
                 let app_ref = app_ref.clone();
                 let app = app_ref.deref().borrow();
+                let play = app.state.unwrap_play();
                 let mut disk = OthelloDisk::new()
                                    .background_color(vc.board_color)
                                    .frame(vc.frame_width)
@@ -183,9 +339,9 @@ fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
                                    .white_color(vc.white_color)
                                    .black_color(vc.black_color)
                                    .radius(vc.disk_radius)
-                                   .disk(app.board[pt]);
-                if let Some(turn) = app.board.turn() {
-                    if app.board.can_locate(pt) {
+                                   .disk(play.board[pt]);
+                if let Some(turn) = play.board.turn() {
+                    if play.board.can_locate(pt) {
                         disk = disk.flow_disk(Some(turn));
                     }
                 }
@@ -194,13 +350,15 @@ fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
 
             let app_ref = app_ref.clone();
             disk.react(move || {
-                app_ref.borrow_mut().board.locate(pt);
+                let mut app = app_ref.deref().borrow_mut();
+                let play = app.state.unwrap_mut_play();
+                play.board.locate(pt);
             })
         })
         .set(BOARD, ui);
 
-    let x = vc.cell_size * ((cols / 4) as f64);
-    let y = vc.cell_size * ((rows / 4) as f64);
+    let x = vc.cell_size * ((gc.cols / 4) as f64);
+    let y = vc.cell_size * ((gc.rows / 4) as f64);
     let signs = &[(-1.0, 1.0), (1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)];
     for (i, &(sx, sy)) in signs.iter().enumerate() {
         Circle::fill(vc.dot_radius)
@@ -211,6 +369,7 @@ fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
 
     for (i, &side) in [Side::Black, Side::White].iter().enumerate() {
         let app = app_ref.deref().borrow();
+        let play = app.state.unwrap_play();
         if side == Side::Black {
             OthelloDisk::new().right_from(BOARD, vc.board_margin)
         } else {
@@ -227,8 +386,8 @@ fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         .set(INDICATOR_LABEL_ICON + i, ui);
 
         let text = match side {
-            Side::Black => app.board.num_black().to_string(),
-            Side::White => app.board.num_white().to_string(),
+            Side::Black => play.board.num_black().to_string(),
+            Side::White => play.board.num_white().to_string(),
         };
         Text::new(&text)
             .w(vc.indicator_text_width)
