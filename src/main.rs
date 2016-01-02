@@ -23,7 +23,8 @@ use std::rc::Rc;
 
 use geom::{Point, Size};
 
-use conrod::{Canvas, Circle, Frameable, Sizeable, Text, Theme, Widget, WidgetMatrix};
+use conrod::{Canvas, Circle, Frameable, LineStyle, Rectangle, Sizeable, Text, Theme, Widget,
+             WidgetMatrix};
 use conrod::color::{self, Color, Colorable};
 use conrod::Positionable;
 
@@ -93,17 +94,7 @@ fn main() {
     let app_ref = Rc::new(RefCell::new(App::default()));
 
     let window: PistonWindow = {
-        let app = app_ref.deref().borrow();
-
-        let board_width = app.cell_size * (app.board.size().1 as f64);
-        let indicator_width = app.cell_size + app.indicator_text_width;
-        let width = board_width + app.board_margin * 2.0 + indicator_width + app.board_margin;
-
-        let board_height = app.cell_size * (app.board.size().0 as f64);
-        let indicator_height = app.cell_size * 2.0;
-        let height = app.board_margin * 2.0 + f64::max(board_height, indicator_height);
-
-        WindowSettings::new("Othello", (width as u32, height as u32))
+        WindowSettings::new("Othello", (1024, 768))
             .exit_on_esc(true)
             .vsync(true)
             .build()
@@ -131,6 +122,7 @@ fn main() {
 
 widget_ids! {
     CANVAS,
+    OTHELLO_CANVAS,
     BOARD,
     DOT with 4,
     INDICATOR_LABEL_ICON with 2,
@@ -140,14 +132,36 @@ widget_ids! {
 fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
     let Size(rows, cols) = {
         let app = app_ref.deref().borrow();
-        Canvas::new().color(app.board_color).set(CANVAS, ui);
+        Canvas::new().color(app.board_color).scrolling(true).set(CANVAS, ui);
         app.board.size()
     };
+
+    {
+        let app = app_ref.deref().borrow();
+        let board_width = app.cell_size * (app.board.size().1 as f64);
+        let indicator_width = app.cell_size + app.indicator_text_width;
+        let width = board_width + app.board_margin * 2.0 + indicator_width + app.board_margin;
+
+        let board_height = app.cell_size * (app.board.size().0 as f64);
+        let indicator_height = app.cell_size * 2.0;
+        let height = app.board_margin * 2.0 + f64::max(board_height, indicator_height);
+
+        let style = LineStyle::new().thickness(0.0);
+        let rect = Rectangle::outline_styled([width, height], style);
+
+        match (ui.win_w < board_width, ui.win_h < board_height) {
+            (true, true) => rect.top_left_of(CANVAS),
+            (false, true) => rect.mid_top_of(CANVAS),
+            (true, false) => rect.mid_left_of(CANVAS),
+            (false, false) => rect.middle_of(CANVAS),
+        }
+        .set(OTHELLO_CANVAS, ui);
+    }
 
     let matrix = {
         let app = app_ref.deref().borrow();
         WidgetMatrix::new(cols as usize, rows as usize)
-            .top_left_with_margins_on(CANVAS, app.board_margin, app.board_margin)
+            .top_left_with_margins_on(OTHELLO_CANVAS, app.board_margin, app.board_margin)
             .w_h(app.cell_size * (cols as f64), app.cell_size * (rows as f64))
     };
 
