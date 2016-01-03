@@ -328,28 +328,27 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
              vc.cell_size * (gc.rows as f64))
         .each_widget(|_n, col, row| {
             let pt = Point(row as i32, col as i32);
-            let disk = {
-                let app_ref = app_ref.clone();
-                let app = app_ref.deref().borrow();
-                let play = app.state.unwrap_play();
-                let mut disk = OthelloDisk::new()
-                                   .background_color(vc.board_color)
-                                   .frame(vc.frame_width)
-                                   .frame_color(vc.frame_color)
-                                   .white_color(vc.white_color)
-                                   .black_color(vc.black_color)
-                                   .radius(vc.disk_radius)
-                                   .disk(play.board[pt]);
-                if let Some(turn) = play.board.turn() {
-                    if play.board.can_locate(pt) {
-                        disk = disk.flow_disk(Some(turn));
-                    }
-                }
-                disk
-            };
 
             let app_ref = app_ref.clone();
-            disk.react(move || {
+            {
+                let app = app_ref.deref().borrow();
+                let play = app.state.unwrap_play();
+
+                match play.board.turn() {
+                    Some(turn) if play.board.can_locate(pt) => {
+                        OthelloDisk::new().flow_disk(Some(turn))
+                    }
+                    _ => OthelloDisk::new(),
+                }
+                .disk(play.board[pt])
+                .background_color(vc.board_color)
+                .frame(vc.frame_width)
+                .frame_color(vc.frame_color)
+                .white_color(vc.white_color)
+                .black_color(vc.black_color)
+                .radius(vc.disk_radius)
+            }
+            .react(move || {
                 let mut app = app_ref.deref().borrow_mut();
                 let play = app.state.unwrap_mut_play();
                 play.board.locate(pt);
@@ -370,7 +369,8 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
     for (i, &side) in [Side::Black, Side::White].iter().enumerate() {
         let app = app_ref.deref().borrow();
         let play = app.state.unwrap_play();
-        if side == Side::Black {
+
+        if i == 0 {
             OthelloDisk::new().right_from(BOARD, vc.board_margin)
         } else {
             OthelloDisk::new().down_from(INDICATOR_LABEL_ICON + (i - 1), 0.0)
@@ -385,11 +385,7 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         .react(|| {})
         .set(INDICATOR_LABEL_ICON + i, ui);
 
-        let text = match side {
-            Side::Black => play.board.num_black().to_string(),
-            Side::White => play.board.num_white().to_string(),
-        };
-        Text::new(&text)
+        Text::new(&play.board.num_disk(side).to_string())
             .w(vc.indicator_text_width)
             .right_from(INDICATOR_LABEL_ICON + i, 0.0)
             .font_size(60)

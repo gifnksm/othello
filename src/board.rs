@@ -138,28 +138,20 @@ impl Board {
         self.turn
     }
 
-    pub fn num_black(&self) -> usize {
+    pub fn num_disk(&self, side: Side) -> usize {
+        let num = match side {
+            Side::Black => self.num_black,
+            Side::White => self.num_white,
+        };
         if cfg!(debug) {
             let cnt = self.cells
                           .points()
                           .map(|pt| self.cells[pt])
-                          .filter(|&cell| cell == Some(Side::Black))
+                          .filter(|&cell| cell == Some(side))
                           .count();
-            assert_eq!(cnt, self.num_black);
+            assert_eq!(cnt, num);
         }
-        self.num_black
-    }
-
-    pub fn num_white(&self) -> usize {
-        if cfg!(debug) {
-            let cnt = self.cells
-                          .points()
-                          .map(|pt| self.cells[pt])
-                          .filter(|&cell| cell == Some(Side::White))
-                          .count();
-            assert_eq!(cnt, self.num_white);
-        }
-        self.num_white
+        num
     }
 
     fn update_locates(&mut self) {
