@@ -1,5 +1,5 @@
 use std::ops::Index;
-use geom::{Geom, Move, Point, Size, Table};
+use geom::{Geom, Move, Point, Points, Size, Table};
 use Side;
 
 #[derive(Copy, Clone, Debug)]
@@ -48,6 +48,22 @@ impl Index<Point> for Board {
 
 impl Board {
     pub fn new(size: Size) -> Board {
+        let mut disks = Vec::with_capacity(4);
+
+        let origin = Point(size.0 / 2 - 1, size.1 / 2 - 1);
+        for &mv in &[Move(0, 0), Move(1, 1)] {
+            disks.push((Side::White, origin + mv));
+        }
+        for &mv in &[Move(0, 1), Move(1, 0)] {
+            disks.push((Side::Black, origin + mv));
+        }
+
+        Board::new_with_disks(size, disks)
+    }
+
+    pub fn new_with_disks<I>(size: Size, disks: I) -> Board
+        where I: IntoIterator<Item = (Side, Point)>
+    {
         let mut board = Board {
             cells: Table::new_empty(size, None, None),
             locates: Table::new_empty(size, Locate::default(), Locate::default()),
@@ -57,19 +73,18 @@ impl Board {
             num_locate: 0,
         };
 
-        let origin = Point(size.0 / 2 - 1, size.1 / 2 - 1);
-        for &mv in &[Move(0, 0), Move(1, 1)] {
-            if board.cells.contains(origin + mv) {
-                board.cells[origin + mv] = Some(Side::White);
-                board.num_white += 1;
+        for (side, pt) in disks {
+            board.cells[pt] = Some(side);
+        }
+
+        for pt in board.cells.points() {
+            match board.cells[pt] {
+                Some(Side::Black) => board.num_black += 1,
+                Some(Side::White) => board.num_white += 1,
+                None => {}
             }
         }
-        for &mv in &[Move(0, 1), Move(1, 0)] {
-            if board.cells.contains(origin + mv) {
-                board.cells[origin + mv] = Some(Side::Black);
-                board.num_black += 1;
-            }
-        }
+
         board.update_locates();
         board
     }
@@ -82,16 +97,16 @@ impl Board {
         self.locates[pt].num_end > 0
     }
 
-    pub fn locate(&mut self, pt: Point) {
+    pub fn locate(&mut self, pt: Point) -> bool {
         let turn = if let Some(turn) = self.turn {
             turn
         } else {
-            return;
+            return false;
         };
         let flip = turn.flip();
 
         if !self.can_locate(pt) {
-            return;
+            return false;
         }
 
         self.cells[pt] = Some(turn);
@@ -122,16 +137,17 @@ impl Board {
         self.turn = Some(flip);
         self.update_locates();
         if self.num_locate > 0 {
-            return;
+            return true;
         }
 
         self.turn = Some(turn);
         self.update_locates();
         if self.num_locate > 0 {
-            return;
+            return true;
         }
 
         self.turn = None;
+        true
     }
 
     pub fn turn(&self) -> Option<Side> {
@@ -152,6 +168,23 @@ impl Board {
             assert_eq!(cnt, num);
         }
         num
+    }
+
+    pub fn create_disks(&self) -> Vec<(Side, Point)> {
+        let mut disks = Vec::with_capacity(self.num_black + self.num_white);
+
+        for pt in self.cells.points() {
+            match self.cells[pt] {
+                Some(side) => disks.push((side, pt)),
+                None => {}
+            }
+        }
+
+        disks
+    }
+
+    pub fn points(&self) -> Points {
+        self.cells.points()
     }
 
     fn update_locates(&mut self) {

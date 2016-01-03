@@ -15,12 +15,16 @@ extern crate board_game_geom as geom;
 extern crate conrod;
 extern crate find_folder;
 extern crate piston_window;
+extern crate rand;
 extern crate vecmath;
 
 use std::cell::RefCell;
+use std::mem;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::str::FromStr;
+use std::sync::mpsc::{self, Receiver, Sender, TryRecvError};
+use std::thread::{self, JoinHandle};
 
 use geom::{Point, Size};
 
@@ -55,6 +59,11 @@ impl Side {
 }
 
 #[derive(Clone, Debug)]
+pub enum Message {
+    Board(Size, Vec<(Side, Point)>),
+    Locate(Side, Point),
+}
+
 struct App {
     state: State,
     game_config: GameConfig,
@@ -71,7 +80,6 @@ impl Default for App {
     }
 }
 
-#[derive(Clone, Debug)]
 enum State {
     Start(StartState),
     Play(PlayState),
@@ -104,32 +112,190 @@ impl_state!(PlayState, Play);
 #[derive(Clone, Debug)]
 struct StartState {
     ddl_rows_selected_idx: Option<usize>,
-    ddl_cols_selected_idx: Option<usize>,
     ddl_rows: Vec<String>,
+
+    ddl_cols_selected_idx: Option<usize>,
     ddl_cols: Vec<String>,
+
+    ddl_black_player_selected_idx: Option<usize>,
+    ddl_black_player: Vec<String>,
+
+    ddl_white_player_selected_idx: Option<usize>,
+    ddl_white_player: Vec<String>,
 }
 
 impl Default for StartState {
     fn default() -> StartState {
-        let ddl = (2..11).map(|n| n.to_string()).collect::<Vec<_>>();
-        StartState {
-            ddl_rows_selected_idx: ddl.iter().position(|x| x == "8"),
-            ddl_cols_selected_idx: ddl.iter().position(|x| x == "8"),
-            ddl_rows: ddl.clone(),
-            ddl_cols: ddl,
-        }
+        let ddl_row_col = (2..11).map(|n| n.to_string()).collect::<Vec<_>>();
+        let ddl_row_col_idx = ddl_row_col.iter().position(|x| x == "8");
 
+        let ddl_player = vec!["Human".to_string(), "AI Random".to_string()];
+        let ddl_player_idx = ddl_player.iter().position(|x| x == "Human");
+
+        StartState {
+            ddl_rows_selected_idx: ddl_row_col_idx,
+            ddl_rows: ddl_row_col.clone(),
+
+            ddl_cols_selected_idx: ddl_row_col_idx,
+            ddl_cols: ddl_row_col,
+
+            ddl_black_player_selected_idx: ddl_player_idx,
+            ddl_black_player: ddl_player.clone(),
+
+            ddl_white_player_selected_idx: ddl_player_idx,
+            ddl_white_player: ddl_player.clone(),
+        }
     }
 }
 
-#[derive(Clone, Debug)]
 struct PlayState {
+    black_player: Option<Player>,
+    white_player: Option<Player>,
     board: Board,
 }
 
 impl PlayState {
-    fn new(size: Size) -> PlayState {
-        PlayState { board: Board::new(size) }
+    fn new(size: Size, black_kind: PlayerKind, white_kind: PlayerKind) -> PlayState {
+        let board = Board::new(size);
+        let black_player = Player::new(black_kind, &board, Side::Black);
+        let white_player = Player::new(white_kind, &board, Side::White);
+        PlayState {
+            board: board,
+            black_player: black_player,
+            white_player: white_player,
+        }
+    }
+
+    fn has_player(&self, side: Side) -> bool {
+        self.get_player(side).is_some()
+    }
+
+    fn get_player(&self, side: Side) -> &Option<Player> {
+        match side {
+            Side::Black => &self.black_player,
+            Side::White => &self.white_player,
+        }
+    }
+
+    fn listen_player(&mut self) {
+        let turn = match self.board.turn() {
+            Some(turn) => turn,
+            None => {
+                self.finish();
+                return;
+            }
+        };
+
+        let loc = if let &Some(ref player) = self.get_player(turn) {
+            match player.receiver.try_recv() {
+                Ok(loc) => loc,
+                Err(TryRecvError::Empty) => return,
+                Err(e) => panic!("error: {}", e),
+            }
+        } else {
+            return;
+        };
+
+        if !self.locate(loc) {
+            panic!("cannot locate: {:?}", loc);
+        }
+    }
+
+    fn finish(&mut self) {
+        if let Some(p) = mem::replace(&mut self.black_player, None) {
+            p.finish();
+        }
+        if let Some(p) = mem::replace(&mut self.white_player, None) {
+            p.finish();
+        }
+    }
+
+    fn locate(&mut self, pt: Point) -> bool {
+        let turn = match self.board.turn() {
+            Some(turn) => turn,
+            None => return false,
+        };
+
+        if !self.board.locate(pt) {
+            return false;
+        }
+
+        if let &Some(ref player) = self.get_player(turn.flip()) {
+            player.sender.send(Message::Locate(turn, pt)).unwrap();
+        }
+
+        true
+    }
+}
+
+struct Player {
+    handle: JoinHandle<()>,
+    receiver: Receiver<Point>,
+    sender: Sender<Message>,
+}
+
+impl Player {
+    fn new(kind: PlayerKind, board: &Board, side: Side) -> Option<Player> {
+        let ai_routine = match kind {
+            PlayerKind::Human => return None,
+            PlayerKind::AiRandom => random_player,
+        };
+
+        let (host_tx, player_rx) = mpsc::channel();
+        let (player_tx, host_rx) = mpsc::channel();
+        let handle = thread::spawn(move || ai_routine(side, player_tx, player_rx));
+
+        let disks = board.create_disks();
+        let message = Message::Board(board.size(), disks);
+
+        host_tx.send(message).unwrap();
+
+        Some(Player {
+            handle: handle,
+            receiver: host_rx,
+            sender: host_tx,
+        })
+    }
+
+    fn finish(self) {
+        let _ = self.handle.join();
+    }
+}
+
+fn random_player(side: Side, tx: Sender<Point>, rx: Receiver<Message>) {
+    let mut rng = rand::thread_rng();
+
+    let mut board = match rx.recv() {
+        Ok(Message::Board(size, disks)) => Board::new_with_disks(size, disks),
+        Ok(msg) => panic!("{:?}", msg),
+        Err(e) => panic!("error: {}", e),
+    };
+
+    loop {
+        match board.turn() {
+            None => break,
+            Some(turn) => {
+                if turn != side {
+                    match rx.recv() {
+                        Ok(Message::Locate(_, pt)) => {
+                            board.locate(pt);
+                            continue;
+                        }
+                        Ok(msg) => panic!("{:?}", msg),
+                        Err(e) => panic!("error: {}", e),
+                    }
+                } else {
+                    let pt = {
+                        let pts = board.points().filter(|&pt| board.can_locate(pt));
+                        rand::sample(&mut rng, pts, 1)[0]
+                    };
+                    if !board.locate(pt) {
+                        panic!("cannot locate: {:?}", pt);
+                    }
+                    tx.send(pt).unwrap();
+                }
+            }
+        }
     }
 }
 
@@ -137,12 +303,25 @@ impl PlayState {
 struct GameConfig {
     rows: i32,
     cols: i32,
+    black_player: PlayerKind,
+    white_player: PlayerKind,
 }
 
 impl Default for GameConfig {
     fn default() -> GameConfig {
-        GameConfig { rows: 8, cols: 8 }
+        GameConfig {
+            rows: 8,
+            cols: 8,
+            black_player: PlayerKind::Human,
+            white_player: PlayerKind::Human,
+        }
     }
+}
+
+#[derive(Copy, Clone, Debug)]
+enum PlayerKind {
+    Human,
+    AiRandom,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -214,6 +393,8 @@ widget_ids! {
     TIMES_LABEL,
     ROWS_DDL,
     COLS_DDL,
+    BLACK_PLAYER_DDL,
+    WHITE_PLAYER_DDL,
 
     PLAY_CANVAS,
     BOARD,
@@ -276,14 +457,57 @@ fn set_widgets_start(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         app.game_config.cols = cols;
     }
 
+    {
+        let mut app = app_ref.deref().borrow_mut();
+        let mut black_player = app.game_config.black_player;
+        let mut white_player = app.game_config.white_player;
+        {
+            let start: &mut StartState = app.state.as_mut();
+            DropDownList::new(&mut start.ddl_black_player,
+                              &mut start.ddl_black_player_selected_idx)
+                .w_h(150.0, 50.0)
+                .down_from(TIMES_LABEL, 40.0)
+                .left_from(TIMES_LABEL, 30.0)
+                .label("Black Player")
+                .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
+                    *selected_idx = Some(new_idx);
+                    black_player = match string {
+                        "Human" => PlayerKind::Human,
+                        "AI Random" => PlayerKind::AiRandom,
+                        _ => panic!(),
+                    }
+                })
+                .set(BLACK_PLAYER_DDL, ui);
+            DropDownList::new(&mut start.ddl_white_player,
+                              &mut start.ddl_white_player_selected_idx)
+                .w_h(150.0, 50.0)
+                .down_from(TIMES_LABEL, 40.0)
+                .right_from(TIMES_LABEL, 30.0)
+                .label("White Player")
+                .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
+                    *selected_idx = Some(new_idx);
+                    white_player = match string {
+                        "Human" => PlayerKind::Human,
+                        "AI Random" => PlayerKind::AiRandom,
+                        _ => panic!(),
+                    }
+                })
+                .set(WHITE_PLAYER_DDL, ui);
+        }
+        app.game_config.black_player = black_player;
+        app.game_config.white_player = white_player;
+    }
+
     Button::new()
         .w_h(200.0, 50.0)
-        .down_from(TIMES_LABEL, 40.0)
+        .down_from(TIMES_LABEL, 130.0)
         .align_middle_x_of(TIMES_LABEL)
         .label("start")
         .react(|| {
             let mut app = app_ref.deref().borrow_mut();
-            app.state = State::Play(PlayState::new(Size(gc.rows, gc.cols)));
+            app.state = State::Play(PlayState::new(Size(gc.rows, gc.cols),
+                                                   gc.black_player,
+                                                   gc.white_player));
         })
         .set(START_BUTTON, ui);
 }
@@ -293,6 +517,12 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         let app = app_ref.deref().borrow();
         (app.game_config, app.view_config)
     };
+
+    {
+        let mut app = app_ref.deref().borrow_mut();
+        let play: &mut PlayState = app.state.as_mut();
+        play.listen_player();
+    }
 
     Canvas::new().color(vc.board_color).scrolling(true).set(CANVAS, ui);
 
@@ -328,7 +558,7 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
                 let play: &PlayState = app.state.as_ref();
 
                 match play.board.turn() {
-                    Some(turn) if play.board.can_locate(pt) => {
+                    Some(turn) if play.board.can_locate(pt) && !play.has_player(turn) => {
                         OthelloDisk::new().flow_disk(Some(turn))
                     }
                     _ => OthelloDisk::new(),
@@ -344,7 +574,11 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
             .react(move || {
                 let mut app = app_ref.deref().borrow_mut();
                 let play: &mut PlayState = app.state.as_mut();
-                play.board.locate(pt);
+                if let Some(turn) = play.board.turn() {
+                    if !play.has_player(turn) {
+                        play.locate(pt);
+                    }
+                }
             })
         })
         .set(BOARD, ui);

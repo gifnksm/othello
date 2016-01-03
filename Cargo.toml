@@ -10,6 +10,7 @@ description = "Othello game."
 [dependencies]
 board-game-geom = "0.1"
 conrod = "0.28"
-piston_window = "0.33"
 find_folder = "0.3"
+piston_window = "0.33"
+rand = "0.3"
 vecmath = "0.2"
