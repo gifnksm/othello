@@ -276,7 +276,6 @@ fn set_widgets_start(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         app.game_config.cols = cols;
     }
 
-
     Button::new()
         .w_h(200.0, 50.0)
         .down_from(TIMES_LABEL, 40.0)

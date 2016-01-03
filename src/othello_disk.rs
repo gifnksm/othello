@@ -1,5 +1,5 @@
 use conrod::{CharacterCache, Circle, CommonBuilder, Dimensions, Frameable, FramedRectangle,
-             IndexSlot, Point, Positionable, Scalar, Theme, UpdateArgs, Mouse, Widget, WidgetKind};
+             IndexSlot, Mouse, Point, Positionable, Scalar, Theme, UpdateArgs, Widget, WidgetKind};
 use conrod::color::{self, Color, Colorable};
 use vecmath;
 
@@ -52,7 +52,7 @@ impl Interaction {
 
 fn get_new_interaction(is_over: bool, prev: Interaction, mouse: Mouse) -> Interaction {
     use conrod::MouseButtonPosition::{Down, Up};
-    use self::Interaction::{Normal, Highlighted, Clicked};
+    use self::Interaction::{Clicked, Highlighted, Normal};
     match (is_over, prev, mouse.left.position) {
         // LMB is down over the button. But the button wasn't Highlighted last
         // update. This means the user clicked somewhere outside the button and
