@@ -77,35 +77,29 @@ enum State {
     Play(PlayState),
 }
 
-impl State {
-    fn unwrap_start(&self) -> &StartState {
-        match self {
-            &State::Start(ref start_ref) => start_ref,
-            _ => panic!(),
+macro_rules! impl_state {
+    ($state_ty:ty, $state_name:ident) => {
+        impl AsRef<$state_ty> for State {
+            fn as_ref(&self) -> &$state_ty {
+                match self {
+                    &State::$state_name(ref s) => s,
+                    _ => panic!(),
+                }
+            }
         }
-    }
-
-    fn unwrap_mut_start(&mut self) -> &mut StartState {
-        match self {
-            &mut State::Start(ref mut start_ref) => start_ref,
-            _ => panic!(),
-        }
-    }
-
-    fn unwrap_play(&self) -> &PlayState {
-        match self {
-            &State::Play(ref play_ref) => play_ref,
-            _ => panic!(),
-        }
-    }
-
-    fn unwrap_mut_play(&mut self) -> &mut PlayState {
-        match self {
-            &mut State::Play(ref mut play_ref) => play_ref,
-            _ => panic!(),
+        impl AsMut<$state_ty> for State {
+            fn as_mut(&mut self) -> &mut $state_ty {
+                match self {
+                    &mut State::$state_name(ref mut s) => s,
+                    _ => panic!(),
+                }
+            }
         }
     }
 }
+
+impl_state!(StartState, Start);
+impl_state!(PlayState, Play);
 
 #[derive(Clone, Debug)]
 struct StartState {
@@ -258,7 +252,7 @@ fn set_widgets_start(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         let mut rows = app.game_config.rows;
         let mut cols = app.game_config.cols;
         {
-            let start = app.state.unwrap_mut_start();
+            let start: &mut StartState = app.state.as_mut();
             DropDownList::new(&mut start.ddl_rows, &mut start.ddl_rows_selected_idx)
                 .w_h(50.0, 50.0)
                 .left_from(TIMES_LABEL, 30.0)
@@ -332,7 +326,7 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
             let app_ref = app_ref.clone();
             {
                 let app = app_ref.deref().borrow();
-                let play = app.state.unwrap_play();
+                let play: &PlayState = app.state.as_ref();
 
                 match play.board.turn() {
                     Some(turn) if play.board.can_locate(pt) => {
@@ -350,7 +344,7 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
             }
             .react(move || {
                 let mut app = app_ref.deref().borrow_mut();
-                let play = app.state.unwrap_mut_play();
+                let play: &mut PlayState = app.state.as_mut();
                 play.board.locate(pt);
             })
         })
@@ -368,7 +362,7 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
 
     for (i, &side) in [Side::Black, Side::White].iter().enumerate() {
         let app = app_ref.deref().borrow();
-        let play = app.state.unwrap_play();
+        let play: &PlayState = app.state.as_ref();
 
         if i == 0 {
             OthelloDisk::new().right_from(BOARD, vc.board_margin)
