@@ -96,16 +96,16 @@ macro_rules! impl_state {
     ($state_ty:ty, $state_name:ident) => {
         impl AsRef<$state_ty> for State {
             fn as_ref(&self) -> &$state_ty {
-                match self {
-                    &State::$state_name(ref s) => s,
+                match *self {
+                    State::$state_name(ref s) => s,
                     _ => panic!(),
                 }
             }
         }
         impl AsMut<$state_ty> for State {
             fn as_mut(&mut self) -> &mut $state_ty {
-                match self {
-                    &mut State::$state_name(ref mut s) => s,
+                match *self {
+                    State::$state_name(ref mut s) => s,
                     _ => panic!(),
                 }
             }
@@ -207,7 +207,7 @@ impl PlayState {
             }
         };
 
-        let loc = if let &Some(ref player) = self.get_player(turn) {
+        let loc = if let Some(ref player) = *self.get_player(turn) {
             match player.receiver.try_recv() {
                 Ok(loc) => loc,
                 Err(TryRecvError::Empty) => return,
@@ -241,7 +241,7 @@ impl PlayState {
             return false;
         }
 
-        if let &Some(ref player) = self.get_player(turn.flip()) {
+        if let Some(ref player) = *self.get_player(turn.flip()) {
             player.sender.send(Message::Locate(turn, pt)).unwrap();
         }
 
@@ -391,8 +391,8 @@ impl DdlString for PlayerKind {
 
     fn to_ddl_string(&self) -> String {
         match *self {
-            PlayerKind::Human => "Human".to_string(),
-            PlayerKind::AiRandom => "AI Random".to_string(),
+            PlayerKind::Human => "Human".to_owned(),
+            PlayerKind::AiRandom => "AI Random".to_owned(),
         }
     }
 
@@ -447,7 +447,7 @@ fn main() {
         let assets = find_folder::Search::KidsThenParents(3, 5)
                          .for_folder("assets")
                          .unwrap();
-        let ref font_path = assets.join("FiraSans-Regular.ttf");
+        let font_path = &assets.join("FiraSans-Regular.ttf");
         let factory = window.factory.borrow().clone();
         let glyph_cache = Glyphs::new(font_path, factory).unwrap();
         let theme = Theme::default();
