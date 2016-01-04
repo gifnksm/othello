@@ -19,6 +19,7 @@ extern crate rand;
 extern crate vecmath;
 
 use std::cell::RefCell;
+use std::marker::PhantomData;
 use std::mem;
 use std::ops::Deref;
 use std::rc::Rc;
@@ -111,41 +112,55 @@ impl_state!(PlayState, Play);
 
 #[derive(Clone, Debug)]
 struct StartState {
-    ddl_rows_selected_idx: Option<usize>,
-    ddl_rows: Vec<String>,
-
-    ddl_cols_selected_idx: Option<usize>,
-    ddl_cols: Vec<String>,
-
-    ddl_black_player_selected_idx: Option<usize>,
-    ddl_black_player: Vec<String>,
-
-    ddl_white_player_selected_idx: Option<usize>,
-    ddl_white_player: Vec<String>,
+    ddl_rows: DdlBuilder<BoardSize>,
+    ddl_cols: DdlBuilder<BoardSize>,
+    ddl_black_player: DdlBuilder<PlayerKind>,
+    ddl_white_player: DdlBuilder<PlayerKind>,
 }
 
 impl Default for StartState {
     fn default() -> StartState {
-        let ddl_row_col = (2..11).map(|n| n.to_string()).collect::<Vec<_>>();
-        let ddl_row_col_idx = ddl_row_col.iter().position(|x| x == "8");
-
-        let ddl_player = vec!["Human".to_string(), "AI Random".to_string()];
-        let ddl_player_idx = ddl_player.iter().position(|x| x == "Human");
-
         StartState {
-            ddl_rows_selected_idx: ddl_row_col_idx,
-            ddl_rows: ddl_row_col.clone(),
-
-            ddl_cols_selected_idx: ddl_row_col_idx,
-            ddl_cols: ddl_row_col,
-
-            ddl_black_player_selected_idx: ddl_player_idx,
-            ddl_black_player: ddl_player.clone(),
-
-            ddl_white_player_selected_idx: ddl_player_idx,
-            ddl_white_player: ddl_player.clone(),
+            ddl_rows: DdlBuilder::new(),
+            ddl_cols: DdlBuilder::new(),
+            ddl_black_player: DdlBuilder::new(),
+            ddl_white_player: DdlBuilder::new(),
         }
     }
+}
+
+#[derive(Clone, Debug)]
+struct DdlBuilder<T> {
+    strings: Vec<String>,
+    selected_idx: Option<usize>,
+    phantom: PhantomData<T>,
+}
+
+impl<T> DdlBuilder<T> {
+    fn new() -> DdlBuilder<T>
+        where T: DdlString + Default
+    {
+        let strings = T::create_strings();
+        let default_str = T::default().to_ddl_string();
+        let selected = strings.iter().position(|x| x == &default_str);
+        DdlBuilder {
+            strings: strings,
+            selected_idx: selected,
+            phantom: PhantomData,
+        }
+    }
+
+    fn build_drop_down_list<F>(&mut self) -> DropDownList<F>
+        where T: DdlString
+    {
+        DropDownList::new(&mut self.strings, &mut self.selected_idx)
+    }
+}
+
+trait DdlString: Sized {
+    fn from_ddl_str(s: &str) -> Option<Self>;
+    fn to_ddl_string(&self) -> String;
+    fn create_strings() -> Vec<String>;
 }
 
 struct PlayState {
@@ -319,9 +334,65 @@ impl Default for GameConfig {
 }
 
 #[derive(Copy, Clone, Debug)]
+struct BoardSize(i32);
+
+impl Default for BoardSize {
+    fn default() -> BoardSize {
+        BoardSize(8)
+    }
+}
+
+impl DdlString for BoardSize {
+    fn from_ddl_str(s: &str) -> Option<BoardSize> {
+        i32::from_str(s).ok().and_then(|size| {
+            if size < 2 || size > 10 {
+                None
+            } else {
+                Some(BoardSize(size))
+            }
+        })
+    }
+
+    fn to_ddl_string(&self) -> String {
+        self.0.to_string()
+    }
+
+    fn create_strings() -> Vec<String> {
+        (2..11).map(|n| n.to_string()).collect::<Vec<_>>()
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
 enum PlayerKind {
     Human,
     AiRandom,
+}
+
+impl Default for PlayerKind {
+    fn default() -> PlayerKind {
+        PlayerKind::Human
+    }
+}
+
+impl DdlString for PlayerKind {
+    fn from_ddl_str(s: &str) -> Option<PlayerKind> {
+        match s {
+            "Human" => Some(PlayerKind::Human),
+            "AI Random" => Some(PlayerKind::AiRandom),
+            _ => None,
+        }
+    }
+
+    fn to_ddl_string(&self) -> String {
+        match *self {
+            PlayerKind::Human => "Human".to_string(),
+            PlayerKind::AiRandom => "AI Random".to_string(),
+        }
+    }
+
+    fn create_strings() -> Vec<String> {
+        vec![PlayerKind::Human.to_ddl_string(), PlayerKind::AiRandom.to_ddl_string()]
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -434,24 +505,26 @@ fn set_widgets_start(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         let mut cols = app.game_config.cols;
         {
             let start: &mut StartState = app.state.as_mut();
-            DropDownList::new(&mut start.ddl_rows, &mut start.ddl_rows_selected_idx)
-                .w_h(50.0, 50.0)
-                .left_from(TIMES_LABEL, 30.0)
-                .label("Rows")
-                .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
-                    *selected_idx = Some(new_idx);
-                    rows = i32::from_str(string).unwrap();
-                })
-                .set(ROWS_DDL, ui);
-            DropDownList::new(&mut start.ddl_cols, &mut start.ddl_cols_selected_idx)
-                .w_h(50.0, 50.0)
-                .right_from(TIMES_LABEL, 30.0)
-                .label("Cols")
-                .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
-                    *selected_idx = Some(new_idx);
-                    cols = i32::from_str(string).unwrap();
-                })
-                .set(COLS_DDL, ui);
+            start.ddl_rows
+                 .build_drop_down_list()
+                 .w_h(50.0, 50.0)
+                 .left_from(TIMES_LABEL, 30.0)
+                 .label("Rows")
+                 .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
+                     *selected_idx = Some(new_idx);
+                     rows = i32::from_str(string).unwrap();
+                 })
+                 .set(ROWS_DDL, ui);
+            start.ddl_cols
+                 .build_drop_down_list()
+                 .w_h(50.0, 50.0)
+                 .right_from(TIMES_LABEL, 30.0)
+                 .label("Cols")
+                 .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
+                     *selected_idx = Some(new_idx);
+                     cols = i32::from_str(string).unwrap();
+                 })
+                 .set(COLS_DDL, ui);
         }
         app.game_config.rows = rows;
         app.game_config.cols = cols;
@@ -463,36 +536,28 @@ fn set_widgets_start(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         let mut white_player = app.game_config.white_player;
         {
             let start: &mut StartState = app.state.as_mut();
-            DropDownList::new(&mut start.ddl_black_player,
-                              &mut start.ddl_black_player_selected_idx)
-                .w_h(150.0, 50.0)
-                .down_from(TIMES_LABEL, 40.0)
-                .left_from(TIMES_LABEL, 30.0)
-                .label("Black Player")
-                .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
-                    *selected_idx = Some(new_idx);
-                    black_player = match string {
-                        "Human" => PlayerKind::Human,
-                        "AI Random" => PlayerKind::AiRandom,
-                        _ => panic!(),
-                    }
-                })
-                .set(BLACK_PLAYER_DDL, ui);
-            DropDownList::new(&mut start.ddl_white_player,
-                              &mut start.ddl_white_player_selected_idx)
-                .w_h(150.0, 50.0)
-                .down_from(TIMES_LABEL, 40.0)
-                .right_from(TIMES_LABEL, 30.0)
-                .label("White Player")
-                .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
-                    *selected_idx = Some(new_idx);
-                    white_player = match string {
-                        "Human" => PlayerKind::Human,
-                        "AI Random" => PlayerKind::AiRandom,
-                        _ => panic!(),
-                    }
-                })
-                .set(WHITE_PLAYER_DDL, ui);
+            start.ddl_black_player
+                 .build_drop_down_list()
+                 .w_h(150.0, 50.0)
+                 .down_from(TIMES_LABEL, 40.0)
+                 .left_from(TIMES_LABEL, 30.0)
+                 .label("Black Player")
+                 .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
+                     *selected_idx = Some(new_idx);
+                     black_player = PlayerKind::from_ddl_str(string).unwrap();
+                 })
+                 .set(BLACK_PLAYER_DDL, ui);
+            start.ddl_white_player
+                 .build_drop_down_list()
+                 .w_h(150.0, 50.0)
+                 .down_from(TIMES_LABEL, 40.0)
+                 .right_from(TIMES_LABEL, 30.0)
+                 .label("White Player")
+                 .react(|selected_idx: &mut Option<usize>, new_idx, string: &str| {
+                     *selected_idx = Some(new_idx);
+                     white_player = PlayerKind::from_ddl_str(string).unwrap();
+                 })
+                 .set(WHITE_PLAYER_DDL, ui);
         }
         app.game_config.black_player = black_player;
         app.game_config.white_player = white_player;
