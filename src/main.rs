@@ -608,6 +608,7 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
     let style = LineStyle::new().thickness(0.0);
     let rect = Rectangle::outline_styled([width, height], style);
 
+    // FIXME (PistonDevelopers/conrod#659): cropped when window is smaller than canvas.
     match (ui.win_w < board_width, ui.win_h < board_height) {
         (true, true) => rect.top_left_of(CANVAS),
         (false, true) => rect.mid_top_of(CANVAS),
