@@ -3,7 +3,7 @@ use conrod::{CharacterCache, Circle, CommonBuilder, Dimensions, Frameable, Frame
 use conrod::color::{self, Color, Colorable};
 use vecmath;
 
-use super::Side;
+use Side;
 
 #[derive(Debug)]
 pub struct OthelloDisk<F> {
