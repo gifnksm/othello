@@ -46,10 +46,10 @@ impl Default for ViewConfig {
             board_margin: 40.0,
             indicator_text_width: 90.0,
 
-            frame_color: color::black(),
+            frame_color: color::BLACK,
             board_color: color::rgba(0.0, 0.5, 0.0, 1.0),
-            white_color: color::white(),
-            black_color: color::black(),
+            white_color: color::WHITE,
+            black_color: color::BLACK,
         }
     }
 }

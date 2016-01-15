@@ -55,7 +55,7 @@ fn set_widgets_start(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         (app.game_config, app.view_config)
     };
 
-    Canvas::new().color(vc.board_color).scrolling(true).set(CANVAS, ui);
+    Canvas::new().color(vc.board_color).scroll_kids().set(CANVAS, ui);
     Text::new(&"x")
         .w_h(30.0, 50.0)
         .font_size(40)
@@ -149,7 +149,7 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         play.listen_player();
     }
 
-    Canvas::new().color(vc.board_color).scrolling(true).set(CANVAS, ui);
+    Canvas::new().color(vc.board_color).scroll_kids().set(CANVAS, ui);
 
     let board_width = vc.cell_size * (gc.cols as f64);
     let indicator_width = vc.cell_size + vc.indicator_text_width;

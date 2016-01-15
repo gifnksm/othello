@@ -261,15 +261,15 @@ impl Style {
     pub fn white_color(&self, theme: &Theme) -> Color {
         self.maybe_white_color
             .or(theme.widget_style::<Self>(KIND)
-                     .map(|default| default.style.maybe_white_color.unwrap_or(color::white())))
-            .unwrap_or(color::white())
+                     .map(|default| default.style.maybe_white_color.unwrap_or(color::WHITE)))
+            .unwrap_or(color::WHITE)
     }
 
     pub fn black_color(&self, theme: &Theme) -> Color {
         self.maybe_black_color
             .or(theme.widget_style::<Self>(KIND)
-                     .map(|default| default.style.maybe_black_color.unwrap_or(color::black())))
-            .unwrap_or(color::black())
+                     .map(|default| default.style.maybe_black_color.unwrap_or(color::BLACK)))
+            .unwrap_or(color::BLACK)
     }
 
     pub fn background_color(&self, theme: &Theme) -> Color {
