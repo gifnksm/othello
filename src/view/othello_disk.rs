@@ -1,5 +1,5 @@
 use conrod::{CharacterCache, Circle, CommonBuilder, Dimensions, Frameable, FramedRectangle,
-             IndexSlot, Mouse, Point, Positionable, Scalar, Theme, UpdateArgs, Widget, WidgetKind};
+             IndexSlot, Mouse, Point, Positionable, Scalar, UpdateArgs, Widget, WidgetKind};
 use conrod::color::{self, Color, Colorable};
 use vecmath;
 
@@ -14,14 +14,18 @@ pub struct OthelloDisk<F> {
     flow_disk: Option<Side>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct Style {
-    pub maybe_white_color: Option<Color>,
-    pub maybe_black_color: Option<Color>,
-    pub maybe_background_color: Option<Color>,
-    pub maybe_frame: Option<f64>,
-    pub maybe_frame_color: Option<Color>,
-    pub maybe_radius: Option<Scalar>,
+pub const KIND: WidgetKind = "OthelloDisk";
+
+widget_style!{
+    KIND;
+    style Style {
+        - white_color: Color { color::WHITE },
+        - black_color: Color { color::BLACK },
+        - background_color: Color { theme.background_color },
+        - frame: Scalar { theme.frame_width },
+        - frame_color: Color { theme.frame_color },
+        - radius_ratio: Scalar { 0.5 }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -30,8 +34,6 @@ pub struct State {
     circle_idx: IndexSlot,
     rectangle_idx: IndexSlot,
 }
-
-pub const KIND: WidgetKind = "OthelloDisk";
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Interaction {
@@ -99,10 +101,10 @@ impl<F> OthelloDisk<F> {
 
     builder_methods!{
         pub react { maybe_react = Some(F) }
-        pub white_color { style.maybe_white_color = Some(Color) }
-        pub black_color { style.maybe_black_color = Some(Color) }
-        pub background_color { style.maybe_background_color = Some(Color) }
-        pub radius { style.maybe_radius = Some(Scalar) }
+        pub white_color { style.white_color = Some(Color) }
+        pub black_color { style.black_color = Some(Color) }
+        pub background_color { style.background_color = Some(Color) }
+        pub radius_ratio { style.radius_ratio = Some(Scalar) }
         pub disk { disk = Some(Side) }
         pub flow_disk { flow_disk = Some(Side) }
     }
@@ -187,7 +189,8 @@ impl<F> Widget for OthelloDisk<F> where F: FnMut()
             .set(rectangle_idx, &mut ui);
 
         if let Some(disk) = self.disk {
-            let radius = style.radius(rect.w());
+            let radius_ratio = style.radius_ratio(ui.theme());
+            let radius = rect.w() * radius_ratio;
             let circle_color = match disk {
                 Side::Black => new_interaction.color(style.black_color(ui.theme())),
                 Side::White => new_interaction.color(style.white_color(ui.theme())),
@@ -201,7 +204,8 @@ impl<F> Widget for OthelloDisk<F> where F: FnMut()
         }
 
         if let Some(flow_disk) = self.flow_disk {
-            let radius = style.radius(rect.w());
+            let radius_ratio = style.radius_ratio(ui.theme());
+            let radius = rect.w() * radius_ratio;
             let circle_color = match flow_disk {
                                    Side::Black => {
                                        new_interaction.color(style.black_color(ui.theme()))
@@ -221,76 +225,14 @@ impl<F> Widget for OthelloDisk<F> where F: FnMut()
     }
 }
 
-impl Style {
-    pub fn new() -> Style {
-        Style {
-            maybe_white_color: None,
-            maybe_black_color: None,
-            maybe_background_color: None,
-            maybe_frame: None,
-            maybe_frame_color: None,
-            maybe_radius: None,
-        }
-    }
-
-    pub fn white_color(&self, theme: &Theme) -> Color {
-        self.maybe_white_color
-            .or_else(|| {
-                theme.widget_style::<Self>(KIND)
-                     .and_then(|default| default.style.maybe_white_color)
-            })
-            .unwrap_or(color::WHITE)
-    }
-
-    pub fn black_color(&self, theme: &Theme) -> Color {
-        self.maybe_black_color
-            .or_else(|| {
-                theme.widget_style::<Self>(KIND)
-                     .and_then(|default| default.style.maybe_black_color)
-            })
-            .unwrap_or(color::BLACK)
-    }
-
-    pub fn background_color(&self, theme: &Theme) -> Color {
-        self.maybe_background_color
-            .or_else(|| {
-                theme.widget_style::<Self>(KIND)
-                     .and_then(|default| default.style.maybe_background_color)
-            })
-            .unwrap_or(theme.background_color)
-    }
-
-    pub fn frame(&self, theme: &Theme) -> f64 {
-        self.maybe_frame
-            .or_else(|| {
-                theme.widget_style::<Self>(KIND)
-                     .and_then(|default| default.style.maybe_frame)
-            })
-            .unwrap_or(theme.frame_width)
-    }
-
-    pub fn frame_color(&self, theme: &Theme) -> Color {
-        self.maybe_frame_color
-            .or_else(|| {
-                theme.widget_style::<Self>(KIND)
-                     .and_then(|default| default.style.maybe_frame_color)
-            })
-            .unwrap_or(theme.frame_color)
-    }
-
-    pub fn radius(&self, w: Scalar) -> Scalar {
-        self.maybe_radius.unwrap_or(w / 2.0)
-    }
-}
-
 impl<F> Frameable for OthelloDisk<F> {
     fn frame(mut self, width: f64) -> Self {
-        self.style.maybe_frame = Some(width);
+        self.style.frame = Some(width);
         self
     }
 
     fn frame_color(mut self, color: Color) -> Self {
-        self.style.maybe_frame_color = Some(color);
+        self.style.frame_color = Some(color);
         self
     }
 }

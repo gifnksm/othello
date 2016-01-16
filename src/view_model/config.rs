@@ -25,7 +25,7 @@ impl Default for GameConfig {
 pub struct ViewConfig {
     pub frame_width: f64,
     pub cell_size: f64,
-    pub disk_radius: f64,
+    pub disk_radius_ratio: f64,
     pub dot_radius: f64,
     pub board_margin: f64,
     pub indicator_text_width: f64,
@@ -41,7 +41,7 @@ impl Default for ViewConfig {
         ViewConfig {
             frame_width: 1.0,
             cell_size: 80.0,
-            disk_radius: 32.0,
+            disk_radius_ratio: 0.4,
             dot_radius: 6.0,
             board_margin: 40.0,
             indicator_text_width: 90.0,

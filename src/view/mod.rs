@@ -197,7 +197,7 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
                     .frame_color(vc.frame_color)
                     .white_color(vc.white_color)
                     .black_color(vc.black_color)
-                    .radius(vc.disk_radius)
+                    .radius_ratio(vc.disk_radius_ratio)
             }
             .react(move || {
                 let mut app = app_ref.deref().borrow_mut();
@@ -235,7 +235,7 @@ fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         .frame(0.0)
         .white_color(vc.white_color)
         .black_color(vc.black_color)
-        .radius(vc.disk_radius)
+        .radius_ratio(vc.disk_radius_ratio)
         .disk(side)
         .react(|| {})
         .set(INDICATOR_LABEL_ICON + i, ui);
