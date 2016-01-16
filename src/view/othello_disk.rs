@@ -97,39 +97,14 @@ impl<F> OthelloDisk<F> {
         }
     }
 
-    pub fn react(mut self, reaction: F) -> Self {
-        self.maybe_react = Some(reaction);
-        self
-    }
-
-    pub fn white_color(mut self, color: Color) -> Self {
-        self.style.maybe_white_color = Some(color);
-        self
-    }
-
-    pub fn black_color(mut self, color: Color) -> Self {
-        self.style.maybe_black_color = Some(color);
-        self
-    }
-
-    pub fn background_color(mut self, color: Color) -> Self {
-        self.style.maybe_background_color = Some(color);
-        self
-    }
-
-    pub fn radius(mut self, radius: Scalar) -> Self {
-        self.style.maybe_radius = Some(radius);
-        self
-    }
-
-    pub fn disk(mut self, disk: Option<Side>) -> Self {
-        self.disk = disk;
-        self
-    }
-
-    pub fn flow_disk(mut self, flow_disk: Option<Side>) -> Self {
-        self.flow_disk = flow_disk;
-        self
+    builder_methods!{
+        pub react { maybe_react = Some(F) }
+        pub white_color { style.maybe_white_color = Some(Color) }
+        pub black_color { style.maybe_black_color = Some(Color) }
+        pub background_color { style.maybe_background_color = Some(Color) }
+        pub radius { style.maybe_radius = Some(Scalar) }
+        pub disk { disk = Some(Side) }
+        pub flow_disk { flow_disk = Some(Side) }
     }
 }
 
