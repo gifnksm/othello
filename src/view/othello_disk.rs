@@ -235,37 +235,46 @@ impl Style {
 
     pub fn white_color(&self, theme: &Theme) -> Color {
         self.maybe_white_color
-            .or(theme.widget_style::<Self>(KIND)
-                     .map(|default| default.style.maybe_white_color.unwrap_or(color::WHITE)))
+            .or_else(|| {
+                theme.widget_style::<Self>(KIND)
+                     .and_then(|default| default.style.maybe_white_color)
+            })
             .unwrap_or(color::WHITE)
     }
 
     pub fn black_color(&self, theme: &Theme) -> Color {
         self.maybe_black_color
-            .or(theme.widget_style::<Self>(KIND)
-                     .map(|default| default.style.maybe_black_color.unwrap_or(color::BLACK)))
+            .or_else(|| {
+                theme.widget_style::<Self>(KIND)
+                     .and_then(|default| default.style.maybe_black_color)
+            })
             .unwrap_or(color::BLACK)
     }
 
     pub fn background_color(&self, theme: &Theme) -> Color {
         self.maybe_background_color
-            .or(theme.widget_style::<Self>(KIND).map(|default| {
-                default.style.maybe_background_color.unwrap_or(theme.background_color)
-            }))
+            .or_else(|| {
+                theme.widget_style::<Self>(KIND)
+                     .and_then(|default| default.style.maybe_background_color)
+            })
             .unwrap_or(theme.background_color)
     }
 
     pub fn frame(&self, theme: &Theme) -> f64 {
         self.maybe_frame
-            .or(theme.widget_style::<Self>(KIND)
-                     .map(|default| default.style.maybe_frame.unwrap_or(theme.frame_width)))
+            .or_else(|| {
+                theme.widget_style::<Self>(KIND)
+                     .and_then(|default| default.style.maybe_frame)
+            })
             .unwrap_or(theme.frame_width)
     }
 
     pub fn frame_color(&self, theme: &Theme) -> Color {
         self.maybe_frame_color
-            .or(theme.widget_style::<Self>(KIND)
-                     .map(|default| default.style.maybe_frame_color.unwrap_or(theme.frame_color)))
+            .or_else(|| {
+                theme.widget_style::<Self>(KIND)
+                     .and_then(|default| default.style.maybe_frame_color)
+            })
             .unwrap_or(theme.frame_color)
     }
 
