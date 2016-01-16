@@ -189,29 +189,23 @@ impl<F> Widget for OthelloDisk<F> where F: FnMut()
             .frame_color(frame_color)
             .set(rectangle_idx, &mut ui);
 
-        if let Some(disk) = self.disk {
-            let circle_color = match disk {
+        let circle_param = if let Some(side) = self.disk {
+            Some((side, None))
+        } else if let Some(side) = self.flow_disk {
+            Some((side, Some(0.5)))
+        } else {
+            None
+        };
+
+        if let Some((side, alpha)) = circle_param {
+            let mut circle_color = match side {
                 Side::Black => new_interaction.color(style.black_color(ui.theme())),
                 Side::White => new_interaction.color(style.white_color(ui.theme())),
             };
-            let circle_idx = state.view().circle_idx.get(&mut ui);
-            Circle::fill(radius)
-                .middle_of(idx)
-                .graphics_for(idx)
-                .color(circle_color)
-                .set(circle_idx, &mut ui);
-        }
+            if let Some(alpha) = alpha {
+                circle_color = circle_color.alpha(alpha);
+            }
 
-        if let Some(flow_disk) = self.flow_disk {
-            let circle_color = match flow_disk {
-                                   Side::Black => {
-                                       new_interaction.color(style.black_color(ui.theme()))
-                                   }
-                                   Side::White => {
-                                       new_interaction.color(style.white_color(ui.theme()))
-                                   }
-                               }
-                               .alpha(0.5);
             let circle_idx = state.view().circle_idx.get(&mut ui);
             Circle::fill(radius)
                 .middle_of(idx)
