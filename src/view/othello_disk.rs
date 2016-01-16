@@ -1,5 +1,5 @@
-use conrod::{CharacterCache, Circle, CommonBuilder, Dimensions, Frameable, FramedRectangle,
-             IndexSlot, Mouse, Point, Positionable, Scalar, UpdateArgs, Widget, WidgetKind};
+use conrod::{CharacterCache, Circle, CommonBuilder, Frameable, FramedRectangle, IndexSlot, Mouse,
+             Point, Positionable, Scalar, UpdateArgs, Widget, WidgetKind};
 use conrod::color::{self, Color, Colorable};
 use vecmath;
 
@@ -83,9 +83,9 @@ fn get_new_interaction(is_over: bool, prev: Interaction, mouse: Mouse) -> Intera
     }
 }
 
-fn is_over_circ(circ_center: Point, mouse_point: Point, dim: Dimensions) -> bool {
+fn is_over_circ(circ_center: Point, mouse_point: Point, radius: Scalar) -> bool {
     let offset = vecmath::vec2_sub(mouse_point, circ_center);
-    vecmath::vec2_len(offset) <= dim[0] / 2.0
+    vecmath::vec2_len(offset) <= radius
 }
 
 impl<F> OthelloDisk<F> {
@@ -143,11 +143,13 @@ impl<F> Widget for OthelloDisk<F> where F: FnMut()
         let UpdateArgs { idx, state, rect, mut ui, style, .. } = args;
         let (xy, dim) = rect.xy_dim();
         let maybe_mouse = ui.input().maybe_mouse.map(|mouse| mouse.relative_to(xy));
+        let radius_ratio = style.radius_ratio(ui.theme());
+        let radius = rect.w() * radius_ratio;
 
         let new_interaction = match (self.disk.is_none(), maybe_mouse) {
             (false, _) | (true, None) => Interaction::Normal,
             (true, Some(mouse)) => {
-                let is_over = is_over_circ([0.0, 0.0], mouse.xy, dim);
+                let is_over = is_over_circ([0.0, 0.0], mouse.xy, radius);
 
                 get_new_interaction(is_over, state.view().interaction, mouse)
             }
@@ -176,7 +178,6 @@ impl<F> Widget for OthelloDisk<F> where F: FnMut()
         }
 
         let rectangle_idx = state.view().rectangle_idx.get(&mut ui);
-        let dim = rect.dim();
         let background_color = style.background_color(ui.theme());
         let frame = style.frame(ui.theme());
         let frame_color = style.frame_color(ui.theme());
@@ -189,8 +190,6 @@ impl<F> Widget for OthelloDisk<F> where F: FnMut()
             .set(rectangle_idx, &mut ui);
 
         if let Some(disk) = self.disk {
-            let radius_ratio = style.radius_ratio(ui.theme());
-            let radius = rect.w() * radius_ratio;
             let circle_color = match disk {
                 Side::Black => new_interaction.color(style.black_color(ui.theme())),
                 Side::White => new_interaction.color(style.white_color(ui.theme())),
@@ -204,8 +203,6 @@ impl<F> Widget for OthelloDisk<F> where F: FnMut()
         }
 
         if let Some(flow_disk) = self.flow_disk {
-            let radius_ratio = style.radius_ratio(ui.theme());
-            let radius = rect.w() * radius_ratio;
             let circle_color = match flow_disk {
                                    Side::Black => {
                                        new_interaction.color(style.black_color(ui.theme()))
