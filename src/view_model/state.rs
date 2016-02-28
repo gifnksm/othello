@@ -9,9 +9,23 @@ use model::{Board, Player, PlayerKind};
 use view::DdlBuilder;
 use super::BoardSize;
 
+pub enum StateKind {
+    Start,
+    Play,
+}
+
 pub enum State {
     Start(StartState),
     Play(PlayState),
+}
+
+impl State {
+    pub fn kind(&self) -> StateKind {
+        match *self {
+            State::Start(_) => StateKind::Start,
+            State::Play(_) => StateKind::Play,
+        }
+    }
 }
 
 macro_rules! impl_state {

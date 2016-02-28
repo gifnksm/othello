@@ -7,19 +7,21 @@ use conrod::{self, Button, Canvas, Circle, Frameable, Labelable, LineStyle, Rect
 use conrod::color::Colorable;
 use conrod::Positionable;
 use geom::{Point, Size};
-use piston_window::Glyphs;
+use piston_window::{self, Glyphs};
 
 use Side;
 use self::othello_disk::OthelloDisk;
 use model::PlayerKind;
-use view_model::{App, BoardSize, PlayState, StartState, State};
+use view_model::{App, BoardSize, PlayState, StartState, State, StateKind};
 
 pub use self::ddl_builder::{DdlBuilder, DdlString};
 
 pub mod ddl_builder;
 mod othello_disk;
 
-pub type Ui = conrod::Ui<Glyphs>;
+pub type Backend = (<piston_window::G2d<'static> as conrod::Graphics>::Texture, Glyphs);
+pub type Ui = conrod::Ui<Backend>;
+pub type UiCell<'a> = conrod::UiCell<'a, Backend>;
 
 widget_ids! {
     CANVAS,
@@ -38,18 +40,17 @@ widget_ids! {
     INDICATOR_LABEL_TEXT with 2,
 }
 
-pub fn set_widgets(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
-    let func: fn(ui: &mut Ui, Rc<RefCell<App>>) = {
-        let app = app_ref.deref().borrow();
-        match app.state {
-            State::Start(_) => set_widgets_start,
-            State::Play(_) => set_widgets_play,
-        }
+pub fn set_widgets(ui: UiCell, app_ref: Rc<RefCell<App>>) {
+    let state = {
+        app_ref.deref().borrow().state.kind()
     };
-    func(ui, app_ref.clone())
+    match state {
+        StateKind::Start => set_widgets_start(ui, app_ref.clone()),
+        StateKind::Play => set_widgets_play(ui, app_ref.clone()),
+    }
 }
 
-fn set_widgets_start(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
+fn set_widgets_start(ref mut ui: UiCell, app_ref: Rc<RefCell<App>>) {
     let (gc, vc) = {
         let app = app_ref.deref().borrow();
         (app.game_config, app.view_config)
@@ -137,7 +138,7 @@ fn set_widgets_start(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
         .set(START_BUTTON, ui);
 }
 
-fn set_widgets_play(ui: &mut Ui, app_ref: Rc<RefCell<App>>) {
+fn set_widgets_play(ref mut ui: UiCell, app_ref: Rc<RefCell<App>>) {
     let (gc, vc) = {
         let app = app_ref.deref().borrow();
         (app.game_config, app.view_config)

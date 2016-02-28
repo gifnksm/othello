@@ -4,7 +4,7 @@ use model::PlayerKind;
 use view::DdlString;
 
 pub use self::config::{GameConfig, ViewConfig};
-pub use self::state::{PlayState, StartState, State};
+pub use self::state::{PlayState, StartState, State, StateKind};
 
 mod config;
 mod state;

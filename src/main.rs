@@ -32,8 +32,7 @@ use conrod::{Theme, Widget};
 use piston_window::{Glyphs, PistonWindow, UpdateEvent, WindowSettings};
 
 use view_model::App;
-
-type Ui = conrod::Ui<Glyphs>;
+use view::Ui;
 
 mod model;
 mod view;

@@ -1,5 +1,5 @@
-use conrod::{CharacterCache, Circle, CommonBuilder, Frameable, FramedRectangle, IndexSlot, Mouse,
-             Point, Positionable, Scalar, UpdateArgs, Widget, WidgetKind};
+use conrod::{Backend, Circle, CommonBuilder, Frameable, FramedRectangle, IndexSlot, Mouse, Point,
+             Positionable, Scalar, UpdateArgs, Widget, WidgetKind};
 use conrod::color::{self, Color, Colorable};
 use vecmath;
 
@@ -19,11 +19,11 @@ pub const KIND: WidgetKind = "OthelloDisk";
 widget_style!{
     KIND;
     style Style {
-        - white_color: Color { color::WHITE },
-        - black_color: Color { color::BLACK },
-        - background_color: Color { theme.background_color },
-        - frame: Scalar { theme.frame_width },
-        - frame_color: Color { theme.frame_color },
+        - white_color: Color { color::WHITE }
+        - black_color: Color { color::BLACK }
+        - background_color: Color { theme.background_color }
+        - frame: Scalar { theme.frame_width }
+        - frame_color: Color { theme.frame_color }
         - radius_ratio: Scalar { 0.5 }
     }
 }
@@ -110,7 +110,8 @@ impl<F> OthelloDisk<F> {
     }
 }
 
-impl<F> Widget for OthelloDisk<F> where F: FnMut()
+impl<F> Widget for OthelloDisk<F>
+    where F: FnMut()
 {
     type State = State;
     type Style = Style;
@@ -139,10 +140,10 @@ impl<F> Widget for OthelloDisk<F> where F: FnMut()
         self.style.clone()
     }
 
-    fn update<C: CharacterCache>(mut self, args: UpdateArgs<Self, C>) {
+    fn update<B: Backend>(mut self, args: UpdateArgs<Self, B>) {
         let UpdateArgs { idx, state, rect, mut ui, style, .. } = args;
         let (xy, dim) = rect.xy_dim();
-        let maybe_mouse = ui.input().maybe_mouse.map(|mouse| mouse.relative_to(xy));
+        let maybe_mouse = ui.input(idx).maybe_mouse.map(|mouse| mouse.relative_to(xy));
         let radius_ratio = style.radius_ratio(ui.theme());
         let radius = rect.w() * radius_ratio;
 
@@ -164,11 +165,11 @@ impl<F> Widget for OthelloDisk<F> where F: FnMut()
 
         match (state.view().interaction, new_interaction) {
             (Interaction::Highlighted, Interaction::Clicked) => {
-                ui.capture_mouse();
+                ui.capture_mouse(idx);
             }
             (Interaction::Clicked, Interaction::Highlighted) |
             (Interaction::Clicked, Interaction::Normal) => {
-                ui.uncapture_mouse();
+                ui.uncapture_mouse(idx);
             }
             _ => {}
         }
