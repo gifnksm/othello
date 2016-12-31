@@ -1,6 +1,6 @@
-use std::ops::Index;
-use geom::{Geom, Move, Point, Points, Size, Table};
 use Side;
+use geom::{Geom, Move, Point, Points, Size, Table, MOVE_ALL_ADJACENTS};
+use std::ops::Index;
 
 #[derive(Copy, Clone, Debug)]
 struct Locate {
@@ -161,10 +161,10 @@ impl Board {
         };
         if cfg!(debug) {
             let cnt = self.cells
-                          .points()
-                          .map(|pt| self.cells[pt])
-                          .filter(|&cell| cell == Some(side))
-                          .count();
+                .points()
+                .map(|pt| self.cells[pt])
+                .filter(|&cell| cell == Some(side))
+                .count();
             assert_eq!(cnt, num);
         }
         num
@@ -195,7 +195,7 @@ impl Board {
                 let mut loc = Locate::default();
 
                 if self.cells[pt].is_none() {
-                    for &mv in &Move::ALL_ADJACENTS {
+                    for &mv in &MOVE_ALL_ADJACENTS {
                         if let Some(end) = self.can_locate_mv(turn, pt, mv) {
                             loc.push(mv, end);
                         }

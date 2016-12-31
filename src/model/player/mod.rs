@@ -1,10 +1,11 @@
-use std::thread::{self, JoinHandle};
-use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
 
-use geom::{Point, Size};
 
 use Side;
+
+use geom::{Point, Size};
 use model::Board;
+use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
+use std::thread::{self, JoinHandle};
 
 mod ai;
 

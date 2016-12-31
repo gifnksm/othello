@@ -1,10 +1,8 @@
-use std::str::FromStr;
-
+use conrod::widget::drop_down_list::Idx;
 use model::PlayerKind;
-use view::DdlString;
-
 pub use self::config::{GameConfig, ViewConfig};
 pub use self::state::{PlayState, StartState, State, StateKind};
+use view::DdlString;
 
 mod config;
 mod state;
@@ -35,14 +33,12 @@ impl Default for BoardSize {
 }
 
 impl DdlString for BoardSize {
-    fn from_ddl_str(s: &str) -> Option<BoardSize> {
-        i32::from_str(s).ok().and_then(|size| {
-            if size < 2 || size > 10 {
-                None
-            } else {
-                Some(BoardSize(size))
-            }
-        })
+    fn from_ddl_index(i: Idx) -> Option<BoardSize> {
+        if i < 2 || i > 10 {
+            None
+        } else {
+            Some(BoardSize(i as i32))
+        }
     }
 
     fn to_ddl_string(&self) -> String {
@@ -55,10 +51,10 @@ impl DdlString for BoardSize {
 }
 
 impl DdlString for PlayerKind {
-    fn from_ddl_str(s: &str) -> Option<PlayerKind> {
-        match s {
-            "Human" => Some(PlayerKind::Human),
-            "AI Random" => Some(PlayerKind::AiRandom),
+    fn from_ddl_index(i: Idx) -> Option<PlayerKind> {
+        match i {
+            0 => Some(PlayerKind::Human),
+            1 => Some(PlayerKind::AiRandom),
             _ => None,
         }
     }

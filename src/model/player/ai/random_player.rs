@@ -1,11 +1,12 @@
-use std::sync::mpsc::{Receiver, Sender};
 
-use rand;
-use geom::Point;
 
 use Side;
+use geom::Point;
 use model::Board;
 use model::player::Message;
+
+use rand;
+use std::sync::mpsc::{Receiver, Sender};
 
 pub fn main(side: Side, tx: Sender<Point>, rx: Receiver<Message>) {
     let mut rng = rand::thread_rng();

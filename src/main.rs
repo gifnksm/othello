@@ -20,19 +20,18 @@ extern crate board_game_geom as geom;
 #[macro_use]
 extern crate conrod;
 extern crate find_folder;
-extern crate piston_window;
 extern crate rand;
 extern crate vecmath;
 
+use conrod::UiBuilder;
+use conrod::backend::piston::Window;
+use conrod::backend::piston::event::UpdateEvent;
+use conrod::backend::piston::window::{self, GlyphCache, WindowSettings, WindowEvents};
+use conrod::image::Map as ImageMap;
 use std::cell::RefCell;
 use std::rc::Rc;
-
-use conrod::{Theme, Widget};
-
-use piston_window::{Glyphs, PistonWindow, UpdateEvent, WindowSettings};
-
+use view::Ids;
 use view_model::App;
-use view::Ui;
 
 mod model;
 mod view;
@@ -54,30 +53,54 @@ impl Side {
 }
 
 fn main() {
-    let window: PistonWindow = {
-        WindowSettings::new("Othello", (1024, 768))
+    const WIDTH: u32 = 1024;
+    const HEIGHT: u32 = 768;
+    let mut window: Window = {
+        WindowSettings::new("Othello", [WIDTH, HEIGHT])
             .exit_on_esc(true)
             .vsync(true)
             .build()
             .unwrap_or_else(|e| panic!("Failed to build PistonWindow: {}", e))
     };
 
-    let mut ui = {
-        let assets = find_folder::Search::KidsThenParents(3, 5)
-                         .for_folder("assets")
-                         .unwrap();
-        let font_path = &assets.join("FiraSans-Regular.ttf");
-        let factory = window.factory.borrow().clone();
-        let glyph_cache = Glyphs::new(font_path, factory).unwrap();
-        let theme = Theme::default();
-        Ui::new(glyph_cache, theme)
-    };
+    let mut events = WindowEvents::new();
+
+    let mut ui = UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
+
+    let assets = find_folder::Search::KidsThenParents(3, 5)
+        .for_folder("assets")
+        .unwrap();
+    let font_path = &assets.join("FiraSans-Regular.ttf");
+    let _ = ui.fonts.insert_from_file(font_path).unwrap();
+
+    let mut text_texture_cache = GlyphCache::new(&mut window, WIDTH, HEIGHT);
+    let image_map = ImageMap::new();
 
     let app_ref = Rc::new(RefCell::new(App::default()));
-    for event in window {
-        ui.handle_event(&event);
+    let mut ids = Ids::new(ui.widget_id_generator());
 
-        let _ = event.update(|_| ui.set_widgets(|ui| view::set_widgets(ui, app_ref.clone())));
-        event.draw_2d(|c, g| ui.draw_if_changed(c, g));
+    while let Some(event) = window.next_event(&mut events) {
+        if let Some(e) = window::convert_event(event.clone(), &window) {
+            ui.handle_event(e);
+        }
+
+        let _ = event.update(|_| {
+            let ui = ui.set_widgets();
+            view::set_widgets(ui, &mut ids, app_ref.clone())
+        });
+
+        let _ = window.draw_2d(&event, |c, g| {
+            if let Some(primitives) = ui.draw_if_changed() {
+                fn texture_from_image<T>(img: &T) -> &T {
+                    img
+                };
+                window::draw(c,
+                             g,
+                             primitives,
+                             &mut text_texture_cache,
+                             &image_map,
+                             texture_from_image);
+            }
+        });
     }
 }

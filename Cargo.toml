@@ -8,10 +8,9 @@ repository = "https://github.com/gifnksm/othello"
 description = "Othello game."
 
 [dependencies]
-board-game-geom = "0.1"
-conrod = "0.32"
+board-game-geom = "0.2"
+conrod = "0.47"
 find_folder = "0.3"
-piston_window = "0.37"
 rand = "0.3"
 vecmath = "0.2"
 clippy = {version = "0.0", optional = true}

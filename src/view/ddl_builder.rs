@@ -1,6 +1,6 @@
+use conrod::widget::DropDownList;
+use conrod::widget::drop_down_list::Idx;
 use std::marker::PhantomData;
-
-use conrod::DropDownList;
 
 #[derive(Clone, Debug)]
 pub struct DdlBuilder<T> {
@@ -23,15 +23,13 @@ impl<T> DdlBuilder<T> {
         }
     }
 
-    pub fn build_drop_down_list<F>(&mut self) -> DropDownList<F>
-        where T: DdlString
-    {
-        DropDownList::new(&mut self.strings, &mut self.selected_idx)
+    pub fn build_drop_down_list(&self) -> DropDownList<String> {
+        DropDownList::new(&self.strings, self.selected_idx.clone())
     }
 }
 
 pub trait DdlString: Sized {
-    fn from_ddl_str(s: &str) -> Option<Self>;
+    fn from_ddl_index(i: Idx) -> Option<Self>;
     fn to_ddl_string(&self) -> String;
     fn create_strings() -> Vec<String>;
 }

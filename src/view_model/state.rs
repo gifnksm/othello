@@ -1,13 +1,11 @@
-use std::sync::mpsc::TryRecvError;
-use std::mem;
-
-use conrod::DropDownList;
-use geom::{Point, Size};
-
 use Side;
+use conrod::widget::DropDownList;
+use geom::{Point, Size};
 use model::{Board, Player, PlayerKind};
-use view::DdlBuilder;
+use std::mem;
+use std::sync::mpsc::TryRecvError;
 use super::BoardSize;
+use view::DdlBuilder;
 
 pub enum StateKind {
     Start,
@@ -72,19 +70,19 @@ impl Default for StartState {
 }
 
 impl StartState {
-    pub fn build_ddl_rows<F>(&mut self) -> DropDownList<F> {
+    pub fn build_ddl_rows(&self) -> DropDownList<String> {
         self.ddl_rows.build_drop_down_list()
     }
 
-    pub fn build_ddl_cols<F>(&mut self) -> DropDownList<F> {
+    pub fn build_ddl_cols(&self) -> DropDownList<String> {
         self.ddl_cols.build_drop_down_list()
     }
 
-    pub fn build_ddl_black_player<F>(&mut self) -> DropDownList<F> {
+    pub fn build_ddl_black_player(&self) -> DropDownList<String> {
         self.ddl_black_player.build_drop_down_list()
     }
 
-    pub fn build_ddl_white_player<F>(&mut self) -> DropDownList<F> {
+    pub fn build_ddl_white_player(&self) -> DropDownList<String> {
         self.ddl_white_player.build_drop_down_list()
     }
 }
