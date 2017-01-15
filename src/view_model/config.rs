@@ -1,11 +1,12 @@
 use conrod::color::{self, Color};
-
 use model::PlayerKind;
+
+use super::BoardSize;
 
 #[derive(Copy, Clone, Debug)]
 pub struct GameConfig {
-    pub rows: i32,
-    pub cols: i32,
+    pub rows: BoardSize,
+    pub cols: BoardSize,
     pub black_player: PlayerKind,
     pub white_player: PlayerKind,
 }
@@ -13,8 +14,8 @@ pub struct GameConfig {
 impl Default for GameConfig {
     fn default() -> GameConfig {
         GameConfig {
-            rows: 8,
-            cols: 8,
+            rows: BoardSize::N8,
+            cols: BoardSize::N8,
             black_player: PlayerKind::Human,
             white_player: PlayerKind::Human,
         }

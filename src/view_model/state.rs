@@ -1,11 +1,8 @@
 use Side;
-use conrod::widget::DropDownList;
 use geom::{Point, Size};
 use model::{Board, Player, PlayerKind};
 use std::mem;
 use std::sync::mpsc::TryRecvError;
-use super::BoardSize;
-use view::DdlBuilder;
 
 pub enum StateKind {
     Start,
@@ -13,15 +10,15 @@ pub enum StateKind {
 }
 
 pub enum State {
-    Start(StartState),
+    Start,
     Play(PlayState),
 }
 
 impl State {
     pub fn kind(&self) -> StateKind {
         match *self {
-            State::Start(_) => StateKind::Start,
-            State::Play(_) => StateKind::Play,
+            State::Start => StateKind::Start,
+            State::Play(..) => StateKind::Play,
         }
     }
 }
@@ -47,45 +44,7 @@ macro_rules! impl_state {
     }
 }
 
-impl_state!(StartState, Start);
 impl_state!(PlayState, Play);
-
-#[derive(Clone, Debug)]
-pub struct StartState {
-    ddl_rows: DdlBuilder<BoardSize>,
-    ddl_cols: DdlBuilder<BoardSize>,
-    ddl_black_player: DdlBuilder<PlayerKind>,
-    ddl_white_player: DdlBuilder<PlayerKind>,
-}
-
-impl Default for StartState {
-    fn default() -> StartState {
-        StartState {
-            ddl_rows: DdlBuilder::new(),
-            ddl_cols: DdlBuilder::new(),
-            ddl_black_player: DdlBuilder::new(),
-            ddl_white_player: DdlBuilder::new(),
-        }
-    }
-}
-
-impl StartState {
-    pub fn build_ddl_rows(&self) -> DropDownList<String> {
-        self.ddl_rows.build_drop_down_list()
-    }
-
-    pub fn build_ddl_cols(&self) -> DropDownList<String> {
-        self.ddl_cols.build_drop_down_list()
-    }
-
-    pub fn build_ddl_black_player(&self) -> DropDownList<String> {
-        self.ddl_black_player.build_drop_down_list()
-    }
-
-    pub fn build_ddl_white_player(&self) -> DropDownList<String> {
-        self.ddl_white_player.build_drop_down_list()
-    }
-}
 
 pub struct PlayState {
     black_player: Option<Player>,

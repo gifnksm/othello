@@ -1,8 +1,5 @@
-use conrod::widget::drop_down_list::Idx;
-use model::PlayerKind;
 pub use self::config::{GameConfig, ViewConfig};
-pub use self::state::{PlayState, StartState, State, StateKind};
-use view::DdlString;
+pub use self::state::{PlayState, State, StateKind};
 
 mod config;
 mod state;
@@ -16,7 +13,7 @@ pub struct App {
 impl Default for App {
     fn default() -> App {
         App {
-            state: State::Start(StartState::default()),
+            state: State::Start,
             game_config: GameConfig::default(),
             view_config: ViewConfig::default(),
         }
@@ -24,49 +21,57 @@ impl Default for App {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct BoardSize(pub i32);
-
-impl Default for BoardSize {
-    fn default() -> BoardSize {
-        BoardSize(8)
-    }
+pub enum BoardSize {
+    N2,
+    N3,
+    N4,
+    N5,
+    N6,
+    N7,
+    N8,
+    N9,
+    N10,
 }
 
-impl DdlString for BoardSize {
-    fn from_ddl_index(i: Idx) -> Option<BoardSize> {
-        if i < 2 || i > 10 {
-            None
-        } else {
-            Some(BoardSize(i as i32))
-        }
-    }
-
-    fn to_ddl_string(&self) -> String {
-        self.0.to_string()
-    }
-
-    fn create_strings() -> Vec<String> {
-        (2..11).map(|n| n.to_string()).collect::<Vec<_>>()
-    }
-}
-
-impl DdlString for PlayerKind {
-    fn from_ddl_index(i: Idx) -> Option<PlayerKind> {
-        match i {
-            0 => Some(PlayerKind::Human),
-            1 => Some(PlayerKind::AiRandom),
-            _ => None,
-        }
-    }
-
-    fn to_ddl_string(&self) -> String {
+impl AsRef<str> for BoardSize {
+    fn as_ref(&self) -> &str {
+        use self::BoardSize::*;
         match *self {
-            PlayerKind::Human => "Human".to_owned(),
-            PlayerKind::AiRandom => "AI Random".to_owned(),
+            N2 => "2",
+            N3 => "3",
+            N4 => "4",
+            N5 => "5",
+            N6 => "6",
+            N7 => "7",
+            N8 => "8",
+            N9 => "9",
+            N10 => "10",
         }
     }
+}
 
-    fn create_strings() -> Vec<String> {
-        vec![PlayerKind::Human.to_ddl_string(), PlayerKind::AiRandom.to_ddl_string()]
+impl BoardSize {
+    pub fn all_values() -> [Self; 9] {
+        use self::BoardSize::*;
+        [N2, N3, N4, N5, N6, N7, N8, N9, N10]
+    }
+
+    pub fn to_index(&self) -> usize {
+        *self as usize
+    }
+
+    pub fn to_value(&self) -> i32 {
+        use self::BoardSize::*;
+        match *self {
+            N2 => 2,
+            N3 => 3,
+            N4 => 4,
+            N5 => 5,
+            N6 => 6,
+            N7 => 7,
+            N8 => 8,
+            N9 => 9,
+            N10 => 10,
+        }
     }
 }

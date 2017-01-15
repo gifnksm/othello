@@ -1,5 +1,3 @@
-
-
 use Side;
 
 use geom::{Point, Size};
@@ -24,6 +22,27 @@ pub enum PlayerKind {
 impl Default for PlayerKind {
     fn default() -> PlayerKind {
         PlayerKind::Human
+    }
+}
+
+impl AsRef<str> for PlayerKind {
+    fn as_ref(&self) -> &str {
+        use self::PlayerKind::*;
+        match *self {
+            Human => "Human",
+            AiRandom => "AI Random",
+        }
+    }
+}
+
+impl PlayerKind {
+    pub fn all_values() -> [Self; 2] {
+        use self::PlayerKind::*;
+        [Human, AiRandom]
+    }
+
+    pub fn to_index(&self) -> usize {
+        *self as usize
     }
 }
 

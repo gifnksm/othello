@@ -3,16 +3,14 @@ use Side;
 use conrod::{Borderable, Labelable, Sizeable, Widget, UiCell};
 use conrod::Positionable;
 use conrod::color::Colorable;
-use conrod::widget::{Button, Canvas, Circle, Rectangle, Text, Matrix};
+use conrod::widget::{Button, Canvas, Circle, Rectangle, Text, Matrix, DropDownList};
 use conrod::widget::line::Style as LineStyle;
 use geom::{Point, Size};
+
 use model::PlayerKind;
-
-pub use self::ddl_builder::{DdlBuilder, DdlString};
 use self::othello_disk::OthelloDisk;
-use view_model::{App, BoardSize, PlayState, StartState, State, StateKind};
+use view_model::{App, PlayState, State, StateKind, BoardSize};
 
-pub mod ddl_builder;
 mod othello_disk;
 
 widget_ids! {
@@ -47,7 +45,7 @@ pub fn set_widgets(ui: &mut UiCell, ids: &mut Ids, app: &mut App) {
 
 fn set_widgets_start(ui: &mut UiCell, ids: &mut Ids, app: &mut App) {
     let (gc, vc) = {
-        (app.game_config, app.view_config)
+        (&mut app.game_config, app.view_config)
     };
 
     Canvas::new().color(vc.board_color).scroll_kids().set(ids.canvas, ui);
@@ -58,60 +56,39 @@ fn set_widgets_start(ui: &mut UiCell, ids: &mut Ids, app: &mut App) {
         .mid_top_with_margin_on(ids.canvas, 40.0)
         .set(ids.times_label, ui);
 
-    {
-        let mut rows = app.game_config.rows;
-        let mut cols = app.game_config.cols;
-        {
-            let start: &mut StartState = app.state.as_mut();
-            let maybe_rows = start.build_ddl_rows()
-                .w_h(50.0, 50.0)
-                .left_from(ids.times_label, 30.0)
-                .label("Rows")
-                .set(ids.rows_ddl, ui)
-                .and_then(BoardSize::from_ddl_index);
-            if let Some(BoardSize(size)) = maybe_rows {
-                rows = size;
-            }
+    let board_sizes = BoardSize::all_values();
+    gc.rows = DropDownList::new(&board_sizes, Some(gc.rows.to_index()))
+        .w_h(50.0, 50.0)
+        .left_from(ids.times_label, 30.0)
+        .label("Rows")
+        .set(ids.rows_ddl, ui)
+        .map(|idx| board_sizes[idx])
+        .unwrap_or(gc.rows);
+    gc.cols = DropDownList::new(&board_sizes, Some(gc.cols.to_index()))
+        .w_h(50.0, 50.0)
+        .right_from(ids.times_label, 30.0)
+        .label("Cols")
+        .set(ids.cols_ddl, ui)
+        .map(|idx| board_sizes[idx])
+        .unwrap_or(gc.cols);
 
-            let maybe_cols = start.build_ddl_cols()
-                .w_h(50.0, 50.0)
-                .right_from(ids.times_label, 30.0)
-                .label("Cols")
-                .set(ids.cols_ddl, ui)
-                .and_then(BoardSize::from_ddl_index);
-            if let Some(BoardSize(size)) = maybe_cols {
-                cols = size;
-            }
-        }
-        app.game_config.rows = rows;
-        app.game_config.cols = cols;
-    }
-
-    {
-        let mut black_player = app.game_config.black_player;
-        let mut white_player = app.game_config.white_player;
-        {
-            let start: &mut StartState = app.state.as_mut();
-            let _ = start.build_ddl_black_player()
-                .w_h(150.0, 50.0)
-                .down_from(ids.times_label, 40.0)
-                .left_from(ids.times_label, 30.0)
-                .label("Black Player")
-                .set(ids.black_player_ddl, ui)
-                .and_then(PlayerKind::from_ddl_index)
-                .map(|kind| black_player = kind);
-            let _ = start.build_ddl_white_player()
-                .w_h(150.0, 50.0)
-                .down_from(ids.times_label, 40.0)
-                .right_from(ids.times_label, 30.0)
-                .label("White Player")
-                .set(ids.white_player_ddl, ui)
-                .and_then(PlayerKind::from_ddl_index)
-                .map(|kind| white_player = kind);
-        }
-        app.game_config.black_player = black_player;
-        app.game_config.white_player = white_player;
-    }
+    let player_kinds = PlayerKind::all_values();
+    gc.black_player = DropDownList::new(&player_kinds, Some(gc.black_player.to_index()))
+        .w_h(150.0, 50.0)
+        .down_from(ids.times_label, 40.0)
+        .left_from(ids.times_label, 30.0)
+        .label("Black Player")
+        .set(ids.black_player_ddl, ui)
+        .map(|idx| player_kinds[idx])
+        .unwrap_or(gc.black_player);
+    gc.white_player = DropDownList::new(&player_kinds, Some(gc.white_player.to_index()))
+        .w_h(150.0, 50.0)
+        .down_from(ids.times_label, 40.0)
+        .right_from(ids.times_label, 30.0)
+        .label("White Player")
+        .set(ids.white_player_ddl, ui)
+        .map(|idx| player_kinds[idx])
+        .unwrap_or(gc.white_player);
 
     let clicked = Button::new()
         .w_h(200.0, 50.0)
@@ -120,9 +97,11 @@ fn set_widgets_start(ui: &mut UiCell, ids: &mut Ids, app: &mut App) {
         .label("start")
         .set(ids.start_button, ui)
         .was_clicked();
+
     if clicked {
-        app.state =
-            State::Play(PlayState::new(Size(gc.rows, gc.cols), gc.black_player, gc.white_player));
+        app.state = State::Play(PlayState::new(Size(gc.rows.to_value(), gc.cols.to_value()),
+                                               gc.black_player,
+                                               gc.white_player));
     }
 }
 
@@ -136,13 +115,16 @@ fn set_widgets_play(ui: &mut UiCell, ids: &mut Ids, app: &mut App) {
         play.listen_player();
     }
 
+    let cols = gc.cols.to_value();
+    let rows = gc.rows.to_value();
+
     Canvas::new().color(vc.board_color).scroll_kids().set(ids.canvas, ui);
 
-    let board_width = vc.cell_size * (gc.cols as f64);
+    let board_width = vc.cell_size * (cols as f64);
     let indicator_width = vc.cell_size + vc.indicator_text_width;
     let width = board_width + vc.board_margin * 2.0 + indicator_width + vc.board_margin;
 
-    let board_height = vc.cell_size * (gc.rows as f64);
+    let board_height = vc.cell_size * (rows as f64);
     let indicator_height = vc.cell_size * 2.0;
     let height = vc.board_margin * 2.0 + f64::max(board_height, indicator_height);
 
@@ -158,10 +140,9 @@ fn set_widgets_play(ui: &mut UiCell, ids: &mut Ids, app: &mut App) {
         }
         .set(ids.play_canvas, ui);
 
-    let mut elements = Matrix::new(gc.cols as usize, gc.rows as usize)
+    let mut elements = Matrix::new(cols as usize, rows as usize)
         .top_left_with_margins_on(ids.play_canvas, vc.board_margin, vc.board_margin)
-        .w_h(vc.cell_size * (gc.cols as f64),
-             vc.cell_size * (gc.rows as f64))
+        .w_h(vc.cell_size * (cols as f64), vc.cell_size * (rows as f64))
         .set(ids.board, ui);
 
     while let Some(element) = elements.next(ui) {
@@ -198,9 +179,8 @@ fn set_widgets_play(ui: &mut UiCell, ids: &mut Ids, app: &mut App) {
         }
     }
 
-
-    let x = vc.cell_size * ((gc.cols / 4) as f64);
-    let y = vc.cell_size * ((gc.rows / 4) as f64);
+    let x = vc.cell_size * ((cols / 4) as f64);
+    let y = vc.cell_size * ((rows / 4) as f64);
     let signs = &[(-1.0, 1.0), (1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)];
     ids.dots.resize(signs.len(), &mut ui.widget_id_generator());
     for (&id, &(sx, sy)) in ids.dots.iter().zip(signs) {
