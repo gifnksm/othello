@@ -68,7 +68,7 @@ fn main() {
     let assets = find_folder::Search::KidsThenParents(3, 5)
         .for_folder("assets")
         .unwrap();
-    let font_path = &assets.join("FiraSans-Regular.ttf");
+    let font_path = &assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
     let _ = ui.fonts.insert_from_file(font_path).unwrap();
 
     let mut text_texture_cache = GlyphCache::new(&mut window, WIDTH, HEIGHT);
