@@ -4,47 +4,10 @@ use model::{Board, Player, PlayerKind};
 use std::mem;
 use std::sync::mpsc::TryRecvError;
 
-pub enum StateKind {
-    Start,
-    Play,
-}
-
 pub enum State {
     Start,
     Play(PlayState),
 }
-
-impl State {
-    pub fn kind(&self) -> StateKind {
-        match *self {
-            State::Start => StateKind::Start,
-            State::Play(..) => StateKind::Play,
-        }
-    }
-}
-
-macro_rules! impl_state {
-    ($state_ty:ty, $state_name:ident) => {
-        impl AsRef<$state_ty> for State {
-            fn as_ref(&self) -> &$state_ty {
-                match *self {
-                    State::$state_name(ref s) => s,
-                    _ => panic!(),
-                }
-            }
-        }
-        impl AsMut<$state_ty> for State {
-            fn as_mut(&mut self) -> &mut $state_ty {
-                match *self {
-                    State::$state_name(ref mut s) => s,
-                    _ => panic!(),
-                }
-            }
-        }
-    }
-}
-
-impl_state!(PlayState, Play);
 
 pub struct PlayState {
     black_player: Option<Player>,

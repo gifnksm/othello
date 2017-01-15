@@ -1,5 +1,5 @@
 pub use self::config::{GameConfig, ViewConfig};
-pub use self::state::{PlayState, State, StateKind};
+pub use self::state::{PlayState, State};
 
 mod config;
 mod state;
