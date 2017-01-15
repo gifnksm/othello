@@ -33,15 +33,8 @@ pub fn set_widgets(ui: &mut UiCell,
     let height = vc.board_margin * 2.0 + f64::max(board_height, indicator_height);
 
     let style = LineStyle::new().thickness(0.0);
-    let rect = Rectangle::outline_styled([width, height], style);
-
-    // FIXME (PistonDevelopers/conrod#659): cropped when window is smaller than canvas.
-    match (ui.win_w < board_width, ui.win_h < board_height) {
-            (true, true) => rect.top_left_of(ids.canvas),
-            (false, true) => rect.mid_top_of(ids.canvas),
-            (true, false) => rect.mid_left_of(ids.canvas),
-            (false, false) => rect.middle_of(ids.canvas),
-        }
+    Rectangle::outline_styled([width, height], style)
+        .middle_of(ids.canvas)
         .set(ids.play_canvas, ui);
 
     let mut elements = Matrix::new(cols as usize, rows as usize)

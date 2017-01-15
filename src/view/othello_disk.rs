@@ -137,29 +137,31 @@ impl Widget for OthelloDisk {
             .set(state.ids.rectangle, &mut ui);
 
         let circle_param = if let Some(side) = self.disk {
-            Some((side, None))
+            Some((false, side, None))
         } else if let Some(side) = self.flow_disk {
-            Some((side, Some(0.5)))
+            Some((true, side, Some(0.3)))
         } else {
             None
         };
 
-        if let Some((side, alpha)) = circle_param {
-            let base_color = match side {
+        if let Some((interactive, side, alpha)) = circle_param {
+            let mut color = match side {
                 Side::Black => style.black_color(&ui.theme),
                 Side::White => style.white_color(&ui.theme),
             };
 
-            let mut circle_color = interaction.color(base_color);
+            if interactive {
+                color = interaction.color(color);
+            }
 
             if let Some(alpha) = alpha {
-                circle_color = circle_color.alpha(alpha);
+                color = color.alpha(alpha);
             }
 
             Circle::fill(radius)
                 .middle_of(id)
                 .graphics_for(id)
-                .color(circle_color)
+                .color(color)
                 .set(state.ids.circle, &mut ui);
         }
 
