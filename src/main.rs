@@ -28,8 +28,6 @@ use conrod::backend::piston::Window;
 use conrod::backend::piston::event::UpdateEvent;
 use conrod::backend::piston::window::{self, GlyphCache, WindowSettings, WindowEvents};
 use conrod::image::Map as ImageMap;
-use std::cell::RefCell;
-use std::rc::Rc;
 use view::Ids;
 use view_model::App;
 
@@ -76,7 +74,7 @@ fn main() {
     let mut text_texture_cache = GlyphCache::new(&mut window, WIDTH, HEIGHT);
     let image_map = ImageMap::new();
 
-    let app_ref = Rc::new(RefCell::new(App::default()));
+    let mut app = App::default();
     let mut ids = Ids::new(ui.widget_id_generator());
 
     while let Some(event) = window.next_event(&mut events) {
@@ -86,7 +84,7 @@ fn main() {
 
         let _ = event.update(|_| {
             let ui = ui.set_widgets();
-            view::set_widgets(ui, &mut ids, app_ref.clone())
+            view::set_widgets(ui, &mut ids, &mut app)
         });
 
         let _ = window.draw_2d(&event, |c, g| {

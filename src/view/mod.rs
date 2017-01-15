@@ -10,9 +10,6 @@ use model::PlayerKind;
 
 pub use self::ddl_builder::{DdlBuilder, DdlString};
 use self::othello_disk::OthelloDisk;
-use std::cell::RefCell;
-use std::ops::Deref;
-use std::rc::Rc;
 use view_model::{App, BoardSize, PlayState, StartState, State, StateKind};
 
 pub mod ddl_builder;
@@ -38,19 +35,18 @@ widget_ids! {
     }
 }
 
-pub fn set_widgets(ui: UiCell, ids: &mut Ids, app_ref: Rc<RefCell<App>>) {
+pub fn set_widgets(ui: UiCell, ids: &mut Ids, app: &mut App) {
     let state = {
-        app_ref.deref().borrow().state.kind()
+        app.state.kind()
     };
     match state {
-        StateKind::Start => set_widgets_start(ui, ids, app_ref.clone()),
-        StateKind::Play => set_widgets_play(ui, ids, app_ref.clone()),
+        StateKind::Start => set_widgets_start(ui, ids, app),
+        StateKind::Play => set_widgets_play(ui, ids, app),
     }
 }
 
-fn set_widgets_start(ref mut ui: UiCell, ids: &mut Ids, app_ref: Rc<RefCell<App>>) {
+fn set_widgets_start(ref mut ui: UiCell, ids: &mut Ids, app: &mut App) {
     let (gc, vc) = {
-        let app = app_ref.deref().borrow();
         (app.game_config, app.view_config)
     };
 
@@ -63,7 +59,6 @@ fn set_widgets_start(ref mut ui: UiCell, ids: &mut Ids, app_ref: Rc<RefCell<App>
         .set(ids.times_label, ui);
 
     {
-        let mut app = app_ref.deref().borrow_mut();
         let mut rows = app.game_config.rows;
         let mut cols = app.game_config.cols;
         {
@@ -93,7 +88,6 @@ fn set_widgets_start(ref mut ui: UiCell, ids: &mut Ids, app_ref: Rc<RefCell<App>
     }
 
     {
-        let mut app = app_ref.deref().borrow_mut();
         let mut black_player = app.game_config.black_player;
         let mut white_player = app.game_config.white_player;
         {
@@ -127,20 +121,17 @@ fn set_widgets_start(ref mut ui: UiCell, ids: &mut Ids, app_ref: Rc<RefCell<App>
         .set(ids.start_button, ui)
         .was_clicked();
     if clicked {
-        let mut app = app_ref.deref().borrow_mut();
         app.state =
             State::Play(PlayState::new(Size(gc.rows, gc.cols), gc.black_player, gc.white_player));
     }
 }
 
-fn set_widgets_play(ref mut ui: UiCell, ids: &mut Ids, app_ref: Rc<RefCell<App>>) {
+fn set_widgets_play(ref mut ui: UiCell, ids: &mut Ids, app: &mut App) {
     let (gc, vc) = {
-        let app = app_ref.deref().borrow();
         (app.game_config, app.view_config)
     };
 
     {
-        let mut app = app_ref.deref().borrow_mut();
         let play: &mut PlayState = app.state.as_mut();
         play.listen_player();
     }
@@ -176,9 +167,7 @@ fn set_widgets_play(ref mut ui: UiCell, ids: &mut Ids, app_ref: Rc<RefCell<App>>
     while let Some(element) = elements.next(ui) {
         let pt = Point(element.row as i32, element.col as i32);
 
-        let app_ref = app_ref.clone();
         let disk = {
-            let app = app_ref.deref().borrow();
             let play: &PlayState = app.state.as_ref();
 
             let mut disk = OthelloDisk::new();
@@ -200,7 +189,6 @@ fn set_widgets_play(ref mut ui: UiCell, ids: &mut Ids, app_ref: Rc<RefCell<App>>
 
         let clicked = element.set(disk, ui);
         if clicked {
-            let mut app = app_ref.deref().borrow_mut();
             let play: &mut PlayState = app.state.as_mut();
             if let Some(turn) = play.turn() {
                 if !play.has_player(turn) {
@@ -227,7 +215,6 @@ fn set_widgets_play(ref mut ui: UiCell, ids: &mut Ids, app_ref: Rc<RefCell<App>>
     ids.indicator_label_texts.resize(sides.len(), &mut ui.widget_id_generator());
     let iter = ids.indicator_label_icons.iter().zip(ids.indicator_label_texts.iter()).zip(sides);
     for ((&icon_id, &text_id), &side) in iter {
-        let app = app_ref.deref().borrow();
         let play: &PlayState = app.state.as_ref();
 
         if icon_id == ids.indicator_label_icons[0] {
