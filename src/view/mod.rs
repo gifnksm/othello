@@ -35,7 +35,7 @@ widget_ids! {
     }
 }
 
-pub fn set_widgets(ui: UiCell, ids: &mut Ids, app: &mut App) {
+pub fn set_widgets(ui: &mut UiCell, ids: &mut Ids, app: &mut App) {
     let state = {
         app.state.kind()
     };
@@ -45,13 +45,13 @@ pub fn set_widgets(ui: UiCell, ids: &mut Ids, app: &mut App) {
     }
 }
 
-fn set_widgets_start(ref mut ui: UiCell, ids: &mut Ids, app: &mut App) {
+fn set_widgets_start(ui: &mut UiCell, ids: &mut Ids, app: &mut App) {
     let (gc, vc) = {
         (app.game_config, app.view_config)
     };
 
     Canvas::new().color(vc.board_color).scroll_kids().set(ids.canvas, ui);
-    Text::new(&"x")
+    Text::new("x")
         .w_h(30.0, 50.0)
         .font_size(40)
         .align_text_middle()
@@ -126,7 +126,7 @@ fn set_widgets_start(ref mut ui: UiCell, ids: &mut Ids, app: &mut App) {
     }
 }
 
-fn set_widgets_play(ref mut ui: UiCell, ids: &mut Ids, app: &mut App) {
+fn set_widgets_play(ui: &mut UiCell, ids: &mut Ids, app: &mut App) {
     let (gc, vc) = {
         (app.game_config, app.view_config)
     };

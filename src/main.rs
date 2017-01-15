@@ -83,8 +83,8 @@ fn main() {
         }
 
         let _ = event.update(|_| {
-            let ui = ui.set_widgets();
-            view::set_widgets(ui, &mut ids, &mut app)
+            let mut ui = ui.set_widgets();
+            view::set_widgets(&mut ui, &mut ids, &mut app)
         });
 
         let _ = window.draw_2d(&event, |c, g| {

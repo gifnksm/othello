@@ -24,7 +24,7 @@ impl<T> DdlBuilder<T> {
     }
 
     pub fn build_drop_down_list(&self) -> DropDownList<String> {
-        DropDownList::new(&self.strings, self.selected_idx.clone())
+        DropDownList::new(&self.strings, self.selected_idx)
     }
 }
 

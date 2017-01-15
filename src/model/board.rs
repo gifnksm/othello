@@ -174,9 +174,8 @@ impl Board {
         let mut disks = Vec::with_capacity(self.num_black + self.num_white);
 
         for pt in self.cells.points() {
-            match self.cells[pt] {
-                Some(side) => disks.push((side, pt)),
-                None => {}
+            if let Some(side) = self.cells[pt] {
+                disks.push((side, pt));
             }
         }
 

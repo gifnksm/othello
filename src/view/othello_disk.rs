@@ -96,7 +96,7 @@ impl Widget for OthelloDisk {
     }
 
     fn style(&self) -> Style {
-        self.style.clone()
+        self.style
     }
 
     fn update(self, args: UpdateArgs<Self>) -> Self::Event {
