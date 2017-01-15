@@ -9,7 +9,7 @@ description = "Othello game."
 
 [dependencies]
 board-game-geom = "0.2"
-conrod = "0.48"
+conrod = "0.47"
 find_folder = "0.3"
 rand = "0.3"
 vecmath = "0.2"
