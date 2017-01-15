@@ -11,6 +11,7 @@ mod ai;
 pub enum Message {
     Board(Size, Vec<(Side, Point)>),
     Locate(Side, Point),
+    Exit,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -76,6 +77,7 @@ impl Player {
     }
 
     pub fn finish(self) {
+        let _ = self.sender.send(Message::Exit);
         let _ = self.handle.join();
     }
 

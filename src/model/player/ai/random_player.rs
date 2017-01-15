@@ -1,5 +1,3 @@
-
-
 use Side;
 use geom::Point;
 use model::Board;
@@ -19,7 +17,13 @@ pub fn main(side: Side, tx: Sender<Point>, rx: Receiver<Message>) {
 
     loop {
         match board.turn() {
-            None => break,
+            None => {
+                match rx.recv() {
+                    Ok(Message::Exit) => break,
+                    Ok(msg) => panic!("{:?}", msg),
+                    Err(e) => panic!("error: {}", e),
+                }
+            }
             Some(turn) => {
                 if turn != side {
                     match rx.recv() {
@@ -27,6 +31,7 @@ pub fn main(side: Side, tx: Sender<Point>, rx: Receiver<Message>) {
                             board.locate(pt);
                             continue;
                         }
+                        Ok(Message::Exit) => break,
                         Ok(msg) => panic!("{:?}", msg),
                         Err(e) => panic!("error: {}", e),
                     }

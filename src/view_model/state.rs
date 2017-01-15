@@ -105,3 +105,9 @@ impl PlayState {
         true
     }
 }
+
+impl Drop for PlayState {
+    fn drop(&mut self) {
+        self.finish();
+    }
+}
