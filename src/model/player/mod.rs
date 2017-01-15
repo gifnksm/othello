@@ -1,6 +1,6 @@
 use Side;
 
-use geom::{Point, Size};
+use geom::Point;
 use model::Board;
 use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
 use std::thread::{self, JoinHandle};
@@ -9,7 +9,6 @@ mod ai;
 
 #[derive(Clone, Debug)]
 pub enum Message {
-    Board(Size, Vec<(Side, Point)>),
     Locate(Side, Point),
     Exit,
 }
@@ -62,12 +61,8 @@ impl Player {
 
         let (host_tx, player_rx) = mpsc::channel();
         let (player_tx, host_rx) = mpsc::channel();
-        let handle = thread::spawn(move || ai_routine(side, player_tx, player_rx));
-
-        let disks = board.create_disks();
-        let message = Message::Board(board.size(), disks);
-
-        host_tx.send(message).unwrap();
+        let board = board.clone();
+        let handle = thread::spawn(move || ai_routine(side, player_tx, player_rx, board));
 
         Some(Player {
             handle: handle,
