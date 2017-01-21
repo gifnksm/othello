@@ -16,7 +16,6 @@
 #![cfg_attr(feature="dev", warn(string_add))]
 #![cfg_attr(feature="dev", warn(string_add_assign))]
 
-extern crate board_game_geom as geom;
 #[macro_use]
 extern crate conrod;
 extern crate find_folder;
@@ -87,18 +86,17 @@ fn main() {
             view::set_widgets(&mut ui, &mut ids, &mut app)
         });
 
-        let _ = window.draw_2d(&event, |c, g| {
-            if let Some(primitives) = ui.draw_if_changed() {
-                fn texture_from_image<T>(img: &T) -> &T {
-                    img
-                };
-                window::draw(c,
-                             g,
-                             primitives,
-                             &mut text_texture_cache,
-                             &image_map,
-                             texture_from_image);
-            }
-        });
+        let _ = window.draw_2d(&event,
+                               |c, g| if let Some(primitives) = ui.draw_if_changed() {
+                                   fn texture_from_image<T>(img: &T) -> &T {
+                                       img
+                                   };
+                                   window::draw(c,
+                                                g,
+                                                primitives,
+                                                &mut text_texture_cache,
+                                                &image_map,
+                                                texture_from_image);
+                               });
     }
 }

@@ -29,8 +29,6 @@ pub enum BoardSize {
     N6,
     N7,
     N8,
-    N9,
-    N10,
 }
 
 impl AsRef<str> for BoardSize {
@@ -44,23 +42,21 @@ impl AsRef<str> for BoardSize {
             N6 => "6",
             N7 => "7",
             N8 => "8",
-            N9 => "9",
-            N10 => "10",
         }
     }
 }
 
 impl BoardSize {
-    pub fn all_values() -> [Self; 9] {
+    pub fn all_values() -> [Self; 7] {
         use self::BoardSize::*;
-        [N2, N3, N4, N5, N6, N7, N8, N9, N10]
+        [N2, N3, N4, N5, N6, N7, N8]
     }
 
     pub fn to_index(&self) -> usize {
         *self as usize
     }
 
-    pub fn to_value(&self) -> i32 {
+    pub fn to_value(&self) -> u32 {
         use self::BoardSize::*;
         match *self {
             N2 => 2,
@@ -70,8 +66,6 @@ impl BoardSize {
             N6 => 6,
             N7 => 7,
             N8 => 8,
-            N9 => 9,
-            N10 => 10,
         }
     }
 }

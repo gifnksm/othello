@@ -8,7 +8,6 @@ repository = "https://github.com/gifnksm/othello"
 description = "Othello game."
 
 [dependencies]
-board-game-geom = "0.2"
 conrod = "0.47"
 find_folder = "0.3"
 rand = "0.3"

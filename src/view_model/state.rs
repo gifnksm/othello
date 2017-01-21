@@ -1,6 +1,5 @@
 use Side;
-use geom::{Point, Size};
-use model::{Board, Player, PlayerKind};
+use model::{Board, Player, PlayerKind, Point, Size};
 use std::mem;
 use std::sync::mpsc::TryRecvError;
 
@@ -56,9 +55,9 @@ impl PlayState {
             }
         };
 
-        let loc = if let Some(ref player) = *self.get_player(turn) {
+        let pt = if let Some(ref player) = *self.get_player(turn) {
             match player.listen() {
-                Ok(loc) => loc,
+                Ok(pt) => pt,
                 Err(TryRecvError::Empty) => return,
                 Err(e) => panic!("error: {}", e),
             }
@@ -66,8 +65,8 @@ impl PlayState {
             return;
         };
 
-        if !self.locate(loc) {
-            panic!("cannot locate: {:?}", loc);
+        if !self.place(pt) {
+            panic!("cannot place: {:?}", pt);
         }
     }
 
@@ -75,31 +74,31 @@ impl PlayState {
         self.board.turn()
     }
 
-    pub fn can_locate(&self, pt: Point) -> bool {
-        self.board.can_locate(pt)
+    pub fn can_place(&self, pt: Point) -> bool {
+        self.board.can_place(pt)
     }
 
     pub fn get_disk_at(&self, pt: Point) -> Option<Side> {
-        self.board[pt]
+        self.board.get(pt)
     }
 
-    pub fn num_disk(&self, side: Side) -> usize {
+    pub fn num_disk(&self, side: Side) -> u32 {
         self.board.num_disk(side)
     }
 
 
-    pub fn locate(&mut self, pt: Point) -> bool {
+    pub fn place(&mut self, pt: Point) -> bool {
         let turn = match self.board.turn() {
             Some(turn) => turn,
             None => return false,
         };
 
-        if !self.board.locate(pt) {
+        if !self.board.place(pt) {
             return false;
         }
 
         if let Some(ref player) = *self.get_player(turn.flip()) {
-            player.locate(turn, pt).unwrap();
+            player.place(turn, pt).unwrap();
         }
 
         true

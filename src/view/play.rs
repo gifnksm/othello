@@ -1,3 +1,5 @@
+use super::Ids;
+use super::othello_disk::OthelloDisk;
 use Side;
 
 use conrod::{Borderable, Sizeable, Widget, UiCell};
@@ -5,10 +7,6 @@ use conrod::Positionable;
 use conrod::color::Colorable;
 use conrod::widget::{Canvas, Circle, Rectangle, Text, Matrix};
 use conrod::widget::line::Style as LineStyle;
-use geom::Point;
-
-use super::Ids;
-use super::othello_disk::OthelloDisk;
 use view_model::{PlayState, State, GameConfig, ViewConfig};
 
 pub fn set_widgets(ui: &mut UiCell,
@@ -43,12 +41,12 @@ pub fn set_widgets(ui: &mut UiCell,
         .set(ids.board, ui);
 
     while let Some(element) = elements.next(ui) {
-        let pt = Point(element.row as i32, element.col as i32);
+        let pt = (element.row as u32, element.col as u32);
 
         let disk = {
             let mut disk = OthelloDisk::new();
             if let Some(turn) = play.turn() {
-                if play.can_locate(pt) && !play.has_player(turn) {
+                if play.can_place(pt) && !play.has_player(turn) {
                     disk = disk.flow_disk(turn);
                 }
             }
@@ -67,7 +65,7 @@ pub fn set_widgets(ui: &mut UiCell,
         if clicked {
             if let Some(turn) = play.turn() {
                 if !play.has_player(turn) {
-                    play.locate(pt);
+                    play.place(pt);
                 }
             }
         }

@@ -1,6 +1,5 @@
 use Side;
-use geom::Point;
-use model::Board;
+use model::{Board, Point};
 use model::player::Message;
 
 use rand;
@@ -20,8 +19,8 @@ pub fn main(side: Side, tx: Sender<Point>, rx: Receiver<Message>, mut board: Boa
             Some(turn) => {
                 if turn != side {
                     match rx.recv() {
-                        Ok(Message::Locate(_, pt)) => {
-                            board.locate(pt);
+                        Ok(Message::Place(_, pt)) => {
+                            board.place(pt);
                             continue;
                         }
                         Ok(Message::Exit) => break,
@@ -29,11 +28,14 @@ pub fn main(side: Side, tx: Sender<Point>, rx: Receiver<Message>, mut board: Boa
                     }
                 } else {
                     let pt = {
-                        let pts = board.points().filter(|&pt| board.can_locate(pt));
+                        let size = board.size();
+                        let pts = (0..size.0)
+                            .flat_map(|x| (0..size.1).map(move |y| (x, y)))
+                            .filter(|&pt| board.can_place(pt));
                         rand::sample(&mut rng, pts, 1)[0]
                     };
-                    if !board.locate(pt) {
-                        panic!("cannot locate: {:?}", pt);
+                    if !board.place(pt) {
+                        panic!("cannot place: {:?}", pt);
                     }
                     tx.send(pt).unwrap();
                 }
