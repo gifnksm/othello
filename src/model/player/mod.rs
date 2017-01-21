@@ -1,10 +1,10 @@
+use self::random::Player as RandomPlayer;
 use Side;
-
 use model::{Board, Point};
 use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
 use std::thread::{self, JoinHandle};
 
-mod ai;
+mod random;
 
 #[derive(Clone, Debug)]
 pub enum Message {
@@ -15,7 +15,12 @@ pub enum Message {
 #[derive(Copy, Clone, Debug)]
 pub enum PlayerKind {
     Human,
-    AiRandom,
+    Ai(AiKind),
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum AiKind {
+    Random,
 }
 
 impl Default for PlayerKind {
@@ -27,9 +32,10 @@ impl Default for PlayerKind {
 impl AsRef<str> for PlayerKind {
     fn as_ref(&self) -> &str {
         use self::PlayerKind::*;
+        use self::AiKind::*;
         match *self {
             Human => "Human",
-            AiRandom => "AI Random",
+            Ai(Random) => "Random",
         }
     }
 }
@@ -37,11 +43,17 @@ impl AsRef<str> for PlayerKind {
 impl PlayerKind {
     pub fn all_values() -> [Self; 2] {
         use self::PlayerKind::*;
-        [Human, AiRandom]
+        use self::AiKind::*;
+        [Human, Ai(Random)]
     }
 
     pub fn to_index(&self) -> usize {
-        *self as usize
+        use self::PlayerKind::*;
+        use self::AiKind::*;
+        match *self {
+            Human => 0,
+            Ai(Random) => 1,
+        }
     }
 }
 
@@ -53,15 +65,19 @@ pub struct Player {
 
 impl Player {
     pub fn new(kind: PlayerKind, board: &Board, side: Side) -> Option<Player> {
-        let ai_routine = match kind {
+        let ai_kind = match kind {
             PlayerKind::Human => return None,
-            PlayerKind::AiRandom => ai::random_player::main,
+            PlayerKind::Ai(ai_kind) => ai_kind,
         };
 
         let (host_tx, player_rx) = mpsc::channel();
         let (player_tx, host_rx) = mpsc::channel();
         let board = *board;
-        let handle = thread::spawn(move || ai_routine(side, player_tx, player_rx, board));
+        let handle = thread::spawn(move || {
+            match ai_kind {
+                AiKind::Random => ai_main(side, player_tx, player_rx, board, RandomPlayer::new()),
+            };
+        });
 
         Some(Player {
             handle: handle,
@@ -81,5 +97,47 @@ impl Player {
 
     pub fn place(&self, turn: Side, pt: Point) -> Result<(), SendError<Message>> {
         self.sender.send(Message::Place(turn, pt))
+    }
+}
+
+pub trait FindMove {
+    fn find_move(&mut self, board: Board) -> Point;
+}
+
+pub fn ai_main<T>(side: Side,
+                  tx: Sender<Point>,
+                  rx: Receiver<Message>,
+                  mut board: Board,
+                  mut player: T)
+    where T: FindMove
+{
+    loop {
+        match board.turn() {
+            None => {
+                match rx.recv() {
+                    Ok(Message::Exit) => break,
+                    Ok(msg) => panic!("{:?}", msg),
+                    Err(e) => panic!("error: {}", e),
+                }
+            }
+            Some(turn) => {
+                if turn != side {
+                    match rx.recv() {
+                        Ok(Message::Place(_, pt)) => {
+                            board.place(pt);
+                            continue;
+                        }
+                        Ok(Message::Exit) => break,
+                        Err(e) => panic!("error: {}", e),
+                    }
+                }
+
+                let pt = player.find_move(board);
+                if !board.place(pt) {
+                    panic!("cannot place: {:?}", pt);
+                }
+                tx.send(pt).unwrap();
+            }
+        }
     }
 }
