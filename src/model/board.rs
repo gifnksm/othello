@@ -1,5 +1,5 @@
 use super::{MAX_SIZE, MIN_SIZE, Point, Size};
-use super::bit_board::{self, BitBoard, MASK_ELEM_COUNT, Mask, Offset};
+use super::bit_board::{self, BitBoard, Mask, Offset};
 use Side;
 use std::cmp;
 
@@ -88,16 +88,14 @@ impl Board {
                            cmp::max(pt.1, MAX_SIZE - pt.1 - 1));
         for _ in 0..cnt {
             mask = mask.shift(self.offset);
-            let mask_elems = mask.elems_mut();
-            let cand_elems = flip_cand.elems_mut();
-            for i in 0..MASK_ELEM_COUNT {
-                if (*mask_elems[i] & you) != 0 {
-                    *cand_elems[i] |= *mask_elems[i];
+            for (mask, cand) in mask.iter_mut().zip(flip_cand.iter_mut()) {
+                if (*mask & you) != 0 {
+                    *cand |= *mask;
                 } else {
-                    if (*mask_elems[i] & me) != 0 {
-                        flip |= *cand_elems[i];
+                    if (*mask & me) != 0 {
+                        flip |= *cand;
                     }
-                    *mask_elems[i] = 0;
+                    *mask = 0;
                 }
             }
         }
