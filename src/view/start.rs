@@ -1,11 +1,11 @@
 use super::Ids;
-use conrod::{Labelable, Sizeable, Widget, UiCell};
+use conrod::{Labelable, Sizeable, UiCell, Widget};
 use conrod::Positionable;
 use conrod::color::Colorable;
-use conrod::widget::{Button, Canvas, Text, DropDownList};
+use conrod::widget::{Button, Canvas, DropDownList, Text};
 
 use model::PlayerKind;
-use view_model::{PlayState, State, BoardSize, GameConfig, ViewConfig};
+use view_model::{BoardSize, GameConfig, PlayState, State, ViewConfig};
 
 pub fn set_widgets(ui: &mut UiCell,
                    ids: &mut Ids,

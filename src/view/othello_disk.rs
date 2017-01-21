@@ -1,7 +1,7 @@
 use Side;
 use conrod::{Borderable, Point, Positionable, Scalar, Widget};
 use conrod::color::{self, Color, Colorable};
-use conrod::widget::{self, Circle, BorderedRectangle, UpdateArgs, CommonBuilder};
+use conrod::widget::{self, BorderedRectangle, Circle, CommonBuilder, UpdateArgs};
 use vecmath;
 
 #[derive(Debug)]

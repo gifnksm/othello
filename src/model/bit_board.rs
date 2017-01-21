@@ -1,4 +1,4 @@
-use super::{Size, Point};
+use super::{Point, Size};
 use std::ops::BitAnd;
 
 pub type BitBoard = u64;

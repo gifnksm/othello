@@ -1,5 +1,5 @@
-use super::{Point, Size, MAX_SIZE, MIN_SIZE};
-use super::bit_board::{self, Mask, Offset, MASK_ELEM_COUNT, BitBoard};
+use super::{MAX_SIZE, MIN_SIZE, Point, Size};
+use super::bit_board::{self, BitBoard, MASK_ELEM_COUNT, Mask, Offset};
 use Side;
 use std::cmp;
 

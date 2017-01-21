@@ -25,7 +25,7 @@ extern crate vecmath;
 use conrod::UiBuilder;
 use conrod::backend::piston::Window;
 use conrod::backend::piston::event::UpdateEvent;
-use conrod::backend::piston::window::{self, GlyphCache, WindowSettings, WindowEvents};
+use conrod::backend::piston::window::{self, GlyphCache, WindowEvents, WindowSettings};
 use conrod::image::Map as ImageMap;
 use view::Ids;
 use view_model::App;
