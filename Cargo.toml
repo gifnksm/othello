@@ -11,7 +11,7 @@ description = "Othello game."
 conrod = "0.47"
 find_folder = "0.3"
 rand = "0.3"
-vecmath = "0.2"
+vecmath = "0.3"
 clippy = {version = "0.0", optional = true}
 
 [features]
