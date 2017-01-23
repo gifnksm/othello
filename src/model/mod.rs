@@ -9,4 +9,5 @@ pub const MAX_SIZE: u32 = 8;
 
 mod bit_board;
 mod board;
+mod evaluator;
 mod player;

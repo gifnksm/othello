@@ -1,9 +1,11 @@
+use self::ai::Player as AiPlayer;
 use self::random::Player as RandomPlayer;
 use Side;
 use model::{Board, Point};
 use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
 use std::thread::{self, JoinHandle};
 
+mod ai;
 mod random;
 
 #[derive(Clone, Debug)]
@@ -21,6 +23,7 @@ pub enum PlayerKind {
 #[derive(Copy, Clone, Debug)]
 pub enum AiKind {
     Random,
+    Weak,
 }
 
 impl Default for PlayerKind {
@@ -36,15 +39,16 @@ impl AsRef<str> for PlayerKind {
         match *self {
             Human => "Human",
             Ai(Random) => "Random",
+            Ai(Weak) => "AI (weak)",
         }
     }
 }
 
 impl PlayerKind {
-    pub fn all_values() -> [Self; 2] {
+    pub fn all_values() -> [Self; 3] {
         use self::PlayerKind::*;
         use self::AiKind::*;
-        [Human, Ai(Random)]
+        [Human, Ai(Random), Ai(Weak)]
     }
 
     pub fn to_index(&self) -> usize {
@@ -53,6 +57,7 @@ impl PlayerKind {
         match *self {
             Human => 0,
             Ai(Random) => 1,
+            Ai(Weak) => 2,
         }
     }
 }
@@ -76,6 +81,10 @@ impl Player {
         let handle = thread::spawn(move || {
             match ai_kind {
                 AiKind::Random => ai_main(side, player_tx, player_rx, board, RandomPlayer::new()),
+                AiKind::Weak => {
+                    let size = board.size();
+                    ai_main(side, player_tx, player_rx, board, AiPlayer::new_weak(size))
+                }
             };
         });
 

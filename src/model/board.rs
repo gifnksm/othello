@@ -41,6 +41,18 @@ impl Board {
         self.turn
     }
 
+    pub fn black_cells(&self) -> BitBoard {
+        self.black_cells
+    }
+
+    pub fn white_cells(&self) -> BitBoard {
+        self.white_cells
+    }
+
+    pub fn place_candidates(&self) -> BitBoard {
+        self.place_cand
+    }
+
     pub fn num_disk(&self, side: Side) -> u32 {
         match side {
             Side::Black => self.black_cells.count_ones(),

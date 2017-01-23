@@ -5,6 +5,7 @@ use rand::{self, ThreadRng};
 pub struct Player {
     rng: ThreadRng,
 }
+
 impl Player {
     pub fn new() -> Self {
         Player { rng: rand::thread_rng() }

@@ -3,11 +3,11 @@ use std::ops::BitAnd;
 use std::slice;
 
 pub type BitBoard = u64;
-const BIT_BOARD_BITS: usize = 64;
+const BIT_BOARD_BITS: u32 = 64;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Offset {
-    offs: [usize; 4],
+    offs: [u32; 4],
     masks: [BitBoard; 8],
 }
 
@@ -19,7 +19,7 @@ impl Offset {
         }
     }
 
-    fn offs(size: Size) -> [usize; 4] {
+    fn offs(size: Size) -> [u32; 4] {
         let r = pt2off((1, 0), size);
         let d = pt2off((0, 1), size);
         let r_off = r;
@@ -31,13 +31,7 @@ impl Offset {
     }
 
     fn masks(size: Size) -> [BitBoard; 8] {
-        let num_cell = (size.0 * size.1) as usize;
-        let all_mask = if num_cell == BIT_BOARD_BITS {
-            !0
-        } else {
-            (1 << num_cell) - 1
-        };
-
+        let all_mask = all_mask(size);
         let mut r_mask = all_mask;
         let mut l_mask = all_mask;
         for y in 0..size.1 {
@@ -111,10 +105,48 @@ impl BitAnd for Mask {
     }
 }
 
+pub fn all_mask(size: Size) -> BitBoard {
+    let num_cell = size.0 * size.1;
+    if num_cell == BIT_BOARD_BITS {
+        !0
+    } else {
+        (1 << num_cell) - 1
+    }
+}
+
 pub fn pt2mask(pt: Point, size: Size) -> BitBoard {
     1 << pt2off(pt, size)
 }
 
-fn pt2off((x, y): Point, (_, sy): Size) -> usize {
-    (x + sy * y) as usize
+fn pt2off((x, y): Point, (_, sy): Size) -> u32 {
+    (x + sy * y)
+}
+
+fn off2ptr(off: u32, size: Size) -> Point {
+    (off % size.1, off / size.1)
+}
+
+pub fn points(mask: BitBoard, size: Size) -> Points {
+    Points {
+        size: size,
+        mask: mask,
+    }
+}
+
+pub struct Points {
+    size: Size,
+    mask: BitBoard,
+}
+
+impl Iterator for Points {
+    type Item = Point;
+
+    fn next(&mut self) -> Option<Point> {
+        if self.mask == 0 {
+            return None;
+        }
+        let off = self.mask.trailing_zeros();
+        self.mask ^= 1 << off;
+        Some(off2ptr(off, self.size))
+    }
 }
