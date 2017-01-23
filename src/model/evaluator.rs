@@ -2,6 +2,7 @@ use super::bit_board::BitBoard;
 use Side;
 use model::{Board, Size};
 use std::cmp::Ordering;
+use std::ops::Mul;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Score {
@@ -56,8 +57,10 @@ impl Ord for Score {
     }
 }
 
-impl Score {
-    pub fn mul(self, coef: i32) -> Score {
+impl Mul<i32> for Score {
+    type Output = Score;
+
+    fn mul(self, coef: i32) -> Score {
         match self {
             Score::Running(v) => Score::Running((coef as f64) * v),
             Score::Ended(v) => Score::Ended(coef * v),

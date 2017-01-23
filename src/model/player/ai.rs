@@ -54,12 +54,12 @@ impl FindMove for Player {
 impl Player {
     fn get_score(&self, board: &Board, num_eval: f64, side_coef: i32, get_max: bool) -> Score {
         if num_eval <= 1.0 {
-            return self.evaluator.eval_board(&board).mul(side_coef);
+            return self.evaluator.eval_board(board) * side_coef;
         }
 
         let cands = board.place_candidates();
         if cands == 0 {
-            return self.evaluator.eval_board(&board).mul(side_coef);
+            return self.evaluator.eval_board(board) * side_coef;
         }
 
         let size = board.size();
