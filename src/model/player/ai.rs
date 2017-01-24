@@ -4,14 +4,34 @@ use super::super::evaluator::{Evaluator, Score};
 use model::{Board, Point, Side, Size};
 use std::f64;
 
+const WEAK_NUM_EVAL: u32 = 10000;
+const MEDIUM_NUM_EVAL: u32 = 100000;
+const STRONG_NUM_EVAL: u32 = 1000000;
+
 #[derive(Clone, Debug)]
 pub struct Player {
+    num_eval: u32,
     evaluator: Evaluator,
 }
 
 impl Player {
+    pub fn new(size: Size, num_eval: u32) -> Self {
+        Player {
+            num_eval: num_eval,
+            evaluator: Evaluator::new(size),
+        }
+    }
+
     pub fn new_weak(size: Size) -> Self {
-        Player { evaluator: Evaluator::new(size) }
+        Self::new(size, WEAK_NUM_EVAL)
+    }
+
+    pub fn new_medium(size: Size) -> Self {
+        Self::new(size, MEDIUM_NUM_EVAL)
+    }
+
+    pub fn new_strong(size: Size) -> Self {
+        Self::new(size, STRONG_NUM_EVAL)
     }
 }
 
@@ -25,7 +45,7 @@ impl FindMove for Player {
 
         let size = board.size();
         let num_cands = cands.count_ones();
-        let child_num_eval = 10000.0 / (num_cands as f64);
+        let child_num_eval = (self.num_eval as f64) / (num_cands as f64);
 
         let mut max = None;
         let it = bit_board::points(cands, size)

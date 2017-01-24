@@ -23,6 +23,8 @@ pub enum PlayerKind {
 pub enum AiKind {
     Random,
     Weak,
+    Medium,
+    Strong,
 }
 
 impl Default for PlayerKind {
@@ -39,15 +41,17 @@ impl AsRef<str> for PlayerKind {
             Human => "Human",
             Ai(Random) => "Random",
             Ai(Weak) => "AI (weak)",
+            Ai(Medium) => "AI (medium)",
+            Ai(Strong) => "AI (strong)",
         }
     }
 }
 
 impl PlayerKind {
-    pub fn all_values() -> [Self; 3] {
+    pub fn all_values() -> [Self; 5] {
         use self::PlayerKind::*;
         use self::AiKind::*;
-        [Human, Ai(Random), Ai(Weak)]
+        [Human, Ai(Random), Ai(Weak), Ai(Medium), Ai(Strong)]
     }
 
     pub fn to_index(&self) -> usize {
@@ -57,6 +61,8 @@ impl PlayerKind {
             Human => 0,
             Ai(Random) => 1,
             Ai(Weak) => 2,
+            Ai(Medium) => 3,
+            Ai(Strong) => 4,
         }
     }
 }
@@ -83,6 +89,22 @@ impl Player {
                 AiKind::Weak => {
                     let size = board.size();
                     ai_main(side, player_tx, player_rx, board, AiPlayer::new_weak(size))
+                }
+                AiKind::Medium => {
+                    let size = board.size();
+                    ai_main(side,
+                            player_tx,
+                            player_rx,
+                            board,
+                            AiPlayer::new_medium(size))
+                }
+                AiKind::Strong => {
+                    let size = board.size();
+                    ai_main(side,
+                            player_tx,
+                            player_rx,
+                            board,
+                            AiPlayer::new_strong(size))
                 }
             };
         });

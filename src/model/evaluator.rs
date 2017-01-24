@@ -114,7 +114,7 @@ impl Evaluator {
                 let disk_score = self.eval_disk_place(board) as f64;
                 let cand_score = self.eval_place_candidates(board) as f64;
                 // TODO: set appropriate score weights
-                Score::Running(disk_score / num_disk + cand_score)
+                Score::Running(disk_score / num_disk + 0.1 * cand_score)
             }
             None => {
                 let black = board.black_cells().count_ones() as i32;
