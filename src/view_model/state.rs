@@ -1,5 +1,4 @@
-use Side;
-use model::{Board, Player, PlayerKind, Point, Size};
+use model::{Board, Player, PlayerKind, Point, Side, Size};
 use std::mem;
 use std::sync::mpsc::TryRecvError;
 

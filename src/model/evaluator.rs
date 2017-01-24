@@ -1,6 +1,5 @@
 use super::bit_board::BitBoard;
-use Side;
-use model::{Board, Size};
+use model::{Board, Side, Size};
 use std::cmp::Ordering;
 use std::ops::Mul;
 

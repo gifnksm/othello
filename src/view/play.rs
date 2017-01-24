@@ -1,12 +1,11 @@
 use super::Ids;
 use super::othello_disk::OthelloDisk;
-use Side;
-
 use conrod::{Borderable, Sizeable, UiCell, Widget};
 use conrod::Positionable;
 use conrod::color::Colorable;
 use conrod::widget::{Canvas, Circle, Matrix, Rectangle, Text};
 use conrod::widget::line::Style as LineStyle;
+use model::Side;
 use view_model::{GameConfig, PlayState, State, ViewConfig};
 
 pub fn set_widgets(ui: &mut UiCell,

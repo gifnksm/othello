@@ -34,21 +34,6 @@ mod model;
 mod view;
 mod view_model;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum Side {
-    Black,
-    White,
-}
-
-impl Side {
-    fn flip(self) -> Side {
-        match self {
-            Side::Black => Side::White,
-            Side::White => Side::Black,
-        }
-    }
-}
-
 fn main() {
     const WIDTH: u32 = 1024;
     const HEIGHT: u32 = 768;

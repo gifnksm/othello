@@ -1,8 +1,7 @@
 use super::FindMove;
 use super::super::bit_board;
 use super::super::evaluator::{Evaluator, Score};
-use Side;
-use model::{Board, Point, Size};
+use model::{Board, Point, Side, Size};
 use std::f64;
 
 #[derive(Clone, Debug)]

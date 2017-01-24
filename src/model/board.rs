@@ -1,6 +1,6 @@
 use super::{MAX_SIZE, MIN_SIZE, Point, Size};
 use super::bit_board::{self, BitBoard, Mask, Offset};
-use Side;
+use model::Side;
 use std::cmp;
 
 #[derive(Copy, Clone, Debug)]

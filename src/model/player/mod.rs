@@ -1,7 +1,6 @@
 use self::ai::Player as AiPlayer;
 use self::random::Player as RandomPlayer;
-use Side;
-use model::{Board, Point};
+use model::{Board, Point, Side};
 use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
 use std::thread::{self, JoinHandle};
 
