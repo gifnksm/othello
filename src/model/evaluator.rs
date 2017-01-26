@@ -1,13 +1,19 @@
 use super::bit_board::BitBoard;
 use model::{Board, Side, Size};
+use std::{f64, i32};
 use std::cmp::Ordering;
 use std::ops::Mul;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Score {
+    NegInfinity,
+    Infinity,
     Running(f64),
     Ended(i32),
 }
+
+pub const MIN_SCORE: Score = Score::NegInfinity;
+pub const MAX_SCORE: Score = Score::Infinity;
 
 impl PartialEq for Score {
     fn eq(&self, other: &Score) -> bool {
@@ -30,6 +36,12 @@ impl PartialOrd for Score {
 impl Ord for Score {
     fn cmp(&self, other: &Score) -> Ordering {
         match (*self, *other) {
+            (Score::NegInfinity, Score::NegInfinity) => Ordering::Equal,
+            (Score::NegInfinity, _) => Ordering::Less,
+            (_, Score::NegInfinity) => Ordering::Greater,
+            (Score::Infinity, Score::Infinity) => Ordering::Equal,
+            (Score::Infinity, _) => Ordering::Greater,
+            (_, Score::Infinity) => Ordering::Less,
             (Score::Running(s), Score::Running(o)) => s.partial_cmp(&o).unwrap(),
             (Score::Running(s), Score::Ended(o)) => {
                 match o.cmp(&0) {
@@ -61,8 +73,11 @@ impl Mul<i32> for Score {
 
     fn mul(self, coef: i32) -> Score {
         match self {
+            Score::NegInfinity => Score::NegInfinity,
+            Score::Infinity => Score::Infinity,
             Score::Running(v) => Score::Running((coef as f64) * v),
             Score::Ended(v) => Score::Ended(coef * v),
+
         }
     }
 }
