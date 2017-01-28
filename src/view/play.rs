@@ -5,7 +5,7 @@ use conrod::Positionable;
 use conrod::color::Colorable;
 use conrod::widget::{Canvas, Circle, Matrix, Rectangle, Text};
 use conrod::widget::line::Style as LineStyle;
-use model::Side;
+use model::{Point, Side};
 use view_model::{GameConfig, PlayState, State, ViewConfig};
 
 pub fn set_widgets(ui: &mut UiCell,
@@ -40,7 +40,7 @@ pub fn set_widgets(ui: &mut UiCell,
         .set(ids.board, ui);
 
     while let Some(element) = elements.next(ui) {
-        let pt = (element.row as u32, element.col as u32);
+        let pt = Point(element.row as u32, element.col as u32);
 
         let disk = {
             let mut disk = OthelloDisk::new();

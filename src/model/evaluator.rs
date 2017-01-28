@@ -1,5 +1,4 @@
-use super::bit_board::BitBoard;
-use model::{Board, Side, Size};
+use super::{BitBoard, Board, Point, Side, Size};
 use std::{f64, i32};
 use std::cmp::Ordering;
 use std::ops::Mul;
@@ -93,7 +92,6 @@ pub struct Evaluator {
 
 impl Evaluator {
     pub fn new(size: Size) -> Self {
-        use super::bit_board::pt2mask as m;
         // c  : corner
         // e? : edge
         // i? : iedge
@@ -104,16 +102,26 @@ impl Evaluator {
         // 2: eA iC iX bC    |   0 - 3  0 -1
         // 3: eB iA bC bX    | - 1 - 3 -1 -1
         // ..
-        let corner_mask = weight_mask(m((0, 0), size), size);
-        let edge_c_mask = weight_mask(m((0, 1), size) | m((1, 0), size), size);
-        let edge_b_mask = weight_mask(m((0, 3), size) | m((3, 0), size), size);
-        // let edge_a_mask = weight_mask(m((0, 2), size) | m((2, 0), size), size);
-        let edge_x_mask = weight_mask(m((1, 1), size), size);
-        let iedge_c_mask = weight_mask(m((2, 1), size) | m((1, 2), size), size);
-        let iedge_a_mask = weight_mask(m((3, 1), size) | m((1, 3), size), size);
-        // let iedge_x_mask = weight_mask(m((2, 2), size), size);
-        let box_c_mask = weight_mask(m((3, 2), size) | m((2, 3), size), size);
-        let box_x_mask = weight_mask(m((3, 3), size), size);
+        let corner_mask = weight_mask(BitBoard::from_point(Point(0, 0), size), size);
+        let edge_c_mask = weight_mask(BitBoard::from_point(Point(0, 1), size) |
+                                      BitBoard::from_point(Point(1, 0), size),
+                                      size);
+        let edge_b_mask = weight_mask(BitBoard::from_point(Point(0, 3), size) |
+                                      BitBoard::from_point(Point(3, 0), size),
+                                      size);
+        // let edge_a_mask = weight_mask(BitBoard::from_point(Point(0, 2), size) | BitBoard::from_point(Point(2, 0), size), size);
+        let edge_x_mask = weight_mask(BitBoard::from_point(Point(1, 1), size), size);
+        let iedge_c_mask = weight_mask(BitBoard::from_point(Point(2, 1), size) |
+                                       BitBoard::from_point(Point(1, 2), size),
+                                       size);
+        let iedge_a_mask = weight_mask(BitBoard::from_point(Point(3, 1), size) |
+                                       BitBoard::from_point(Point(1, 3), size),
+                                       size);
+        // let iedge_x_mask = weight_mask(BitBoard::from_point(Point(2, 2), size), size);
+        let box_c_mask = weight_mask(BitBoard::from_point(Point(3, 2), size) |
+                                     BitBoard::from_point(Point(2, 3), size),
+                                     size);
+        let box_x_mask = weight_mask(BitBoard::from_point(Point(3, 3), size), size);
 
         // http://uguisu.skr.jp/othello/5-1.html
         let weights = vec![(30, corner_mask),
@@ -129,15 +137,15 @@ impl Evaluator {
     pub fn eval_board(&self, board: &Board) -> Score {
         match board.turn() {
             Some(_) => {
-                let num_disk = (board.black_cells() | board.white_cells()).count_ones() as f64;
+                let num_disk = (board.black_cells() | board.white_cells()).num_bits() as f64;
                 let disk_score = self.eval_disk_place(board) as f64;
                 let cand_score = self.eval_place_candidates(board) as f64;
                 // TODO: set appropriate score weights
                 Score::Running(disk_score / num_disk + 0.1 * cand_score)
             }
             None => {
-                let black = board.black_cells().count_ones() as i32;
-                let white = board.white_cells().count_ones() as i32;
+                let black = board.black_cells().num_bits() as i32;
+                let white = board.white_cells().num_bits() as i32;
                 Score::Ended(black - white)
             }
         }
@@ -149,14 +157,14 @@ impl Evaluator {
         let mut black = 0;
         let mut white = 0;
         for &(val, mask) in &self.weights {
-            black += val * (mask & black_cells).count_ones() as i32;
-            white += val * (mask & white_cells).count_ones() as i32;
+            black += val * (mask & black_cells).num_bits() as i32;
+            white += val * (mask & white_cells).num_bits() as i32;
         }
         black - white
     }
 
     fn eval_place_candidates(&self, board: &Board) -> i32 {
-        let num_cand = board.place_candidates().count_ones() as i32;
+        let num_cand = board.place_candidates().num_bits() as i32;
         match board.turn() {
             Some(Side::Black) => num_cand,
             Some(Side::White) => -num_cand,
@@ -166,9 +174,7 @@ impl Evaluator {
 }
 
 fn weight_mask(mask: BitBoard, size: Size) -> BitBoard {
-    use super::bit_board::pt2mask as m;
-
-    let mut out_mask = 0;
+    let mut out_mask = BitBoard::empty();
 
     let ul_size = (size.0 / 2, size.1 / 2);
     let dr_size = (size.0 - ul_size.0, size.1 - ul_size.1);
@@ -177,15 +183,18 @@ fn weight_mask(mask: BitBoard, size: Size) -> BitBoard {
         let rx = size.0 - x - 1;
         for y in 0..ul_size.1 {
             let ry = size.1 - y - 1;
-            if (mask & m((x, y), size)) != 0 {
-                out_mask |= m((x, y), size) | m((rx, y), size) | m((x, ry), size) |
-                            m((rx, ry), size);
+            if mask.contains(Point(x, y), size) {
+                out_mask |= BitBoard::from_point(Point(x, y), size) |
+                            BitBoard::from_point(Point(rx, y), size) |
+                            BitBoard::from_point(Point(x, ry), size) |
+                            BitBoard::from_point(Point(rx, ry), size);
             }
         }
         for y in ul_size.1..dr_size.1 {
             let ry = size.1 - y - 1;
-            if (mask & m((x, y), size)) != 0 {
-                out_mask |= m((x, ry), size) | m((rx, ry), size);
+            if mask.contains(Point(x, y), size) {
+                out_mask |= BitBoard::from_point(Point(x, ry), size) |
+                            BitBoard::from_point(Point(rx, ry), size);
             }
         }
     }
@@ -193,14 +202,15 @@ fn weight_mask(mask: BitBoard, size: Size) -> BitBoard {
         let rx = size.0 - x - 1;
         for y in 0..ul_size.1 {
             let ry = size.1 - y - 1;
-            if (mask & m((x, y), size)) != 0 {
-                out_mask |= m((rx, y), size) | m((rx, ry), size);
+            if mask.contains(Point(x, y), size) {
+                out_mask |= BitBoard::from_point(Point(rx, y), size) |
+                            BitBoard::from_point(Point(rx, ry), size);
             }
         }
         for y in ul_size.1..dr_size.1 {
             let ry = size.1 - y - 1;
-            if (mask & m((x, y), size)) != 0 {
-                out_mask |= m((rx, ry), size);
+            if mask.contains(Point(x, y), size) {
+                out_mask |= BitBoard::from_point(Point(rx, ry), size);
             }
         }
     }

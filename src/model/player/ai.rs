@@ -1,5 +1,4 @@
 use super::FindMove;
-use super::super::bit_board;
 use super::super::evaluator::{Evaluator, MAX_SCORE, MIN_SCORE, Score};
 use model::{Board, Point, Side, Size};
 use std::{cmp, u32};
@@ -40,13 +39,13 @@ impl FindMove for Player {
         let side = board.turn().unwrap();
 
         let cands = board.place_candidates();
-        assert!(cands > 0);
+        assert!(!cands.is_empty());
 
         let size = board.size();
-        let num_cands = cands.count_ones();
+        let num_cands = cands.num_bits();
         let child_num_eval = (self.num_eval as f64) / (num_cands as f64);
 
-        bit_board::points(cands, size)
+        cands.points(size)
             .map(move |pt| {
                 let mut board = board;
                 board.place(pt);
@@ -78,15 +77,15 @@ impl Player {
         }
 
         let cands = board.place_candidates();
-        if cands == 0 {
+        if cands.is_empty() {
             return self.evaluator.eval_board(board) * side_coef;
         }
 
         let size = board.size();
-        let num_cands = cands.count_ones();
+        let num_cands = cands.num_bits();
         let child_num_eval = num_eval / (num_cands as f64);
 
-        let it = bit_board::points(cands, size).map(|pt| {
+        let it = cands.points(size).map(|pt| {
             let mut board = *board;
             board.place(pt);
             board

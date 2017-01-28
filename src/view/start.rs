@@ -4,7 +4,7 @@ use conrod::Positionable;
 use conrod::color::Colorable;
 use conrod::widget::{Button, Canvas, DropDownList, Text};
 
-use model::PlayerKind;
+use model::{PlayerKind, Size};
 use view_model::{BoardSize, GameConfig, PlayState, State, ViewConfig};
 
 pub fn set_widgets(ui: &mut UiCell,
@@ -64,7 +64,7 @@ pub fn set_widgets(ui: &mut UiCell,
         .was_clicked();
 
     if clicked {
-        let new_state = State::Play(PlayState::new((gc.rows.to_value(), gc.cols.to_value()),
+        let new_state = State::Play(PlayState::new(Size(gc.rows.to_value(), gc.cols.to_value()),
                                                    gc.black_player,
                                                    gc.white_player));
         Some(new_state)

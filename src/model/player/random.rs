@@ -15,9 +15,7 @@ impl Player {
 impl FindMove for Player {
     fn find_move(&mut self, board: Board) -> Point {
         let size = board.size();
-        let pts = (0..size.0)
-            .flat_map(|x| (0..size.1).map(move |y| (x, y)))
-            .filter(|&pt| board.can_place(pt));
+        let pts = board.place_candidates().points(size);
         rand::sample(&mut self.rng, pts, 1)[0]
     }
 }

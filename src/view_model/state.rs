@@ -74,7 +74,7 @@ impl PlayState {
     }
 
     pub fn can_place(&self, pt: Point) -> bool {
-        self.board.can_place(pt)
+        self.board.place_candidates().contains(pt, self.board.size())
     }
 
     pub fn get_disk_at(&self, pt: Point) -> Option<Side> {

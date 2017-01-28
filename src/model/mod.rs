@@ -1,13 +1,28 @@
+pub use self::bit_board::BitBoard;
 pub use self::board::Board;
 pub use self::player::{Player, PlayerKind};
 
 mod bit_board;
 mod board;
 mod evaluator;
+mod multi_direction;
 mod player;
 
-pub type Point = (u32, u32);
-pub type Size = (u32, u32);
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct Point(pub u32, pub u32);
+
+impl Point {
+    fn from_offset(off: u32, size: Size) -> Point {
+        Point(off % size.0, off / size.0)
+    }
+
+    fn offset(&self, size: Size) -> u32 {
+        self.0 + size.0 * self.1
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct Size(pub u32, pub u32);
 
 pub const MIN_SIZE: u32 = 2;
 pub const MAX_SIZE: u32 = 8;
