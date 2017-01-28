@@ -150,3 +150,20 @@ impl Iterator for Points {
         Some(off2ptr(off, self.size))
     }
 }
+
+impl DoubleEndedIterator for Points {
+    fn next_back(&mut self) -> Option<Point> {
+        if self.mask == 0 {
+            return None;
+        }
+        let off = self.mask.leading_zeros();
+        self.mask ^= 1 << off;
+        Some(off2ptr(off, self.size))
+    }
+}
+
+impl ExactSizeIterator for Points {
+    fn len(&self) -> usize {
+        self.mask.count_ones() as usize
+    }
+}
