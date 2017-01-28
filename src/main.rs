@@ -40,13 +40,11 @@ mod view_model;
 fn main() {
     const WIDTH: u32 = 1024;
     const HEIGHT: u32 = 768;
-    let mut window: Window = {
-        WindowSettings::new("Othello", [WIDTH, HEIGHT])
-            .exit_on_esc(true)
-            .vsync(true)
-            .build()
-            .unwrap_or_else(|e| panic!("Failed to build PistonWindow: {}", e))
-    };
+    let mut window: Window = WindowSettings::new("Othello", [WIDTH, HEIGHT])
+        .exit_on_esc(true)
+        .vsync(true)
+        .build()
+        .expect("failed to build PistonWindow");
 
     let mut events = WindowEvents::new();
 
@@ -54,9 +52,9 @@ fn main() {
 
     let assets = find_folder::Search::KidsThenParents(3, 5)
         .for_folder("assets")
-        .unwrap();
+        .expect("faild to find assets folder");
     let font_path = &assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
-    let _ = ui.fonts.insert_from_file(font_path).unwrap();
+    let _ = ui.fonts.insert_from_file(font_path).expect("failed to load font");
 
     let mut text_texture_cache = GlyphCache::new(&mut window, WIDTH, HEIGHT);
     let image_map = ImageMap::new();
