@@ -4,9 +4,9 @@ use super::super::evaluator::{Evaluator, MAX_SCORE, MIN_SCORE, Score};
 use model::{Board, Point, Side, Size};
 use std::{cmp, u32};
 
-const WEAK_NUM_EVAL: u32 = 10000;
-const MEDIUM_NUM_EVAL: u32 = 100000;
-const STRONG_NUM_EVAL: u32 = 1000000;
+const WEAK_NUM_EVAL: u32 = 1_000_000;
+const MEDIUM_NUM_EVAL: u32 = 10_000_000;
+const STRONG_NUM_EVAL: u32 = 100_000_000;
 
 #[derive(Clone, Debug)]
 pub struct Player {
