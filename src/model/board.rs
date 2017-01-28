@@ -15,6 +15,8 @@ pub struct Board {
 
 impl Board {
     pub fn new(size: Size) -> Self {
+        use super::bit_board::pt2mask as m;
+
         assert!(MIN_SIZE <= size.0 && size.0 <= MAX_SIZE);
         assert!(MIN_SIZE <= size.1 && size.1 <= MAX_SIZE);
 
@@ -23,10 +25,8 @@ impl Board {
             size: size,
             turn: Some(Side::Black),
             offset: Offset::from_size(size),
-            black_cells: bit_board::pt2mask((x, y), size) |
-                         bit_board::pt2mask((x + 1, y + 1), size),
-            white_cells: bit_board::pt2mask((x + 1, y), size) |
-                         bit_board::pt2mask((x, y + 1), size),
+            black_cells: m((x, y), size) | m((x + 1, y + 1), size),
+            white_cells: m((x + 1, y), size) | m((x, y + 1), size),
             place_cand: 0,
         };
         board.update_place_cand();

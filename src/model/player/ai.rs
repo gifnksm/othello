@@ -2,7 +2,7 @@ use super::FindMove;
 use super::super::bit_board;
 use super::super::evaluator::{Evaluator, MAX_SCORE, MIN_SCORE, Score};
 use model::{Board, Point, Side, Size};
-use std::cmp;
+use std::{cmp, u32};
 
 const WEAK_NUM_EVAL: u32 = 10000;
 const MEDIUM_NUM_EVAL: u32 = 100000;
@@ -46,26 +46,16 @@ impl FindMove for Player {
         let num_cands = cands.count_ones();
         let child_num_eval = (self.num_eval as f64) / (num_cands as f64);
 
-        let mut max = None;
-        let it = bit_board::points(cands, size)
+        bit_board::points(cands, size)
             .map(move |pt| {
                 let mut board = board;
                 board.place(pt);
                 (pt, board)
             })
-            .map(|(pt, board)| (pt, self.get_score(&board, child_num_eval, side)));
-
-        for (pt, score) in it {
-            if let Some((_, max_score)) = max {
-                if score > max_score {
-                    max = Some((pt, score))
-                }
-            } else {
-                max = Some((pt, score))
-            }
-        }
-
-        max.unwrap().0
+            .map(|(pt, board)| (pt, self.get_score(&board, child_num_eval, side)))
+            .max_by_key(|e| e.1)
+            .unwrap()
+            .0
     }
 }
 
