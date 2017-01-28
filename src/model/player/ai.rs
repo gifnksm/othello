@@ -9,38 +9,38 @@ const STRONG_NUM_EVAL: u32 = 100_000_000;
 
 #[derive(Clone, Debug)]
 pub struct Player {
+    side: Side,
     num_eval: u32,
     evaluator: Evaluator,
 }
 
 impl Player {
-    pub fn new(size: Size, num_eval: u32) -> Self {
+    pub fn new(side: Side, size: Size, num_eval: u32) -> Self {
         Player {
+            side: side,
             num_eval: num_eval,
             evaluator: Evaluator::new(size),
         }
     }
 
-    pub fn new_weak(size: Size) -> Self {
-        Self::new(size, WEAK_NUM_EVAL)
+    pub fn new_weak(side: Side, size: Size) -> Self {
+        Self::new(side, size, WEAK_NUM_EVAL)
     }
 
-    pub fn new_medium(size: Size) -> Self {
-        Self::new(size, MEDIUM_NUM_EVAL)
+    pub fn new_medium(side: Side, size: Size) -> Self {
+        Self::new(side, size, MEDIUM_NUM_EVAL)
     }
 
-    pub fn new_strong(size: Size) -> Self {
-        Self::new(size, STRONG_NUM_EVAL)
+    pub fn new_strong(side: Side, size: Size) -> Self {
+        Self::new(side, size, STRONG_NUM_EVAL)
     }
 }
 
 impl FindMove for Player {
     fn find_move(&mut self, board: Board) -> Point {
-        let side = board.turn().unwrap();
+        assert!(board.turn() == Some(self.side));
 
         let cands = board.place_candidates();
-        assert!(!cands.is_empty());
-
         let size = board.size();
         let num_cands = cands.num_bits();
         let child_num_eval = (self.num_eval as f64) / (num_cands as f64);
@@ -51,7 +51,7 @@ impl FindMove for Player {
                 board.place(pt);
                 (pt, board)
             })
-            .map(|(pt, board)| (pt, self.get_score(&board, child_num_eval, side)))
+            .map(|(pt, board)| (pt, self.get_score(&board, child_num_eval)))
             .max_by_key(|e| e.1)
             .unwrap()
             .0
@@ -59,28 +59,16 @@ impl FindMove for Player {
 }
 
 impl Player {
-    fn get_score(&self, board: &Board, num_eval: f64, side: Side) -> Score {
-        let side_coef = if side == Side::Black { 1 } else { -1 };
-        self.alphabeta(board, num_eval, side_coef, false, MIN_SCORE, MAX_SCORE)
+    fn get_score(&self, board: &Board, num_eval: f64) -> Score {
+        self.alphabeta(board, num_eval, MIN_SCORE, MAX_SCORE)
     }
 
-    fn alphabeta(&self,
-                 board: &Board,
-                 num_eval: f64,
-                 side_coef: i32,
-                 get_max: bool,
-                 mut alpha: Score,
-                 mut beta: Score)
-                 -> Score {
-        if num_eval <= 1.0 {
-            return self.evaluator.eval_board(board) * side_coef;
+    fn alphabeta(&self, board: &Board, num_eval: f64, alpha: Score, beta: Score) -> Score {
+        if num_eval <= 1.0 || board.turn().is_none() {
+            return self.evaluator.eval_board(board, self.side);
         }
 
         let cands = board.place_candidates();
-        if cands.is_empty() {
-            return self.evaluator.eval_board(board) * side_coef;
-        }
-
         let size = board.size();
         let num_cands = cands.num_bits();
         let child_num_eval = num_eval / (num_cands as f64);
@@ -91,10 +79,10 @@ impl Player {
             board
         });
 
-        if get_max {
+        if board.turn() == Some(self.side) {
+            let mut alpha = alpha;
             for board in it {
-                let score =
-                    self.alphabeta(&board, child_num_eval, side_coef, !get_max, alpha, beta);
+                let score = self.alphabeta(&board, child_num_eval, alpha, beta);
                 alpha = cmp::max(alpha, score);
                 if alpha >= beta {
                     return beta;
@@ -102,9 +90,9 @@ impl Player {
             }
             alpha
         } else {
+            let mut beta = beta;
             for board in it {
-                let score =
-                    self.alphabeta(&board, child_num_eval, side_coef, !get_max, alpha, beta);
+                let score = self.alphabeta(&board, child_num_eval, alpha, beta);
                 beta = cmp::min(beta, score);
                 if alpha >= beta {
                     return alpha;

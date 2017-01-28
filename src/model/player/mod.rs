@@ -84,29 +84,13 @@ impl Player {
         let (player_tx, host_rx) = mpsc::channel();
         let board = *board;
         let handle = thread::spawn(move || {
-            match ai_kind {
-                AiKind::Random => ai_main(side, player_tx, player_rx, board, RandomPlayer::new()),
-                AiKind::Weak => {
-                    let size = board.size();
-                    ai_main(side, player_tx, player_rx, board, AiPlayer::new_weak(size))
-                }
-                AiKind::Medium => {
-                    let size = board.size();
-                    ai_main(side,
-                            player_tx,
-                            player_rx,
-                            board,
-                            AiPlayer::new_medium(size))
-                }
-                AiKind::Strong => {
-                    let size = board.size();
-                    ai_main(side,
-                            player_tx,
-                            player_rx,
-                            board,
-                            AiPlayer::new_strong(size))
-                }
+            let mut player: Box<FindMove> = match ai_kind {
+                AiKind::Random => Box::new(RandomPlayer::new()),
+                AiKind::Weak => Box::new(AiPlayer::new_weak(side, board.size())),
+                AiKind::Medium => Box::new(AiPlayer::new_medium(side, board.size())),
+                AiKind::Strong => Box::new(AiPlayer::new_strong(side, board.size())),
             };
+            ai_main(side, player_tx, player_rx, board, &mut *player);
         });
 
         Some(Player {
@@ -134,13 +118,11 @@ pub trait FindMove {
     fn find_move(&mut self, board: Board) -> Point;
 }
 
-pub fn ai_main<T>(side: Side,
-                  tx: Sender<Point>,
-                  rx: Receiver<Message>,
-                  mut board: Board,
-                  mut player: T)
-    where T: FindMove
-{
+pub fn ai_main(side: Side,
+               tx: Sender<Point>,
+               rx: Receiver<Message>,
+               mut board: Board,
+               mut player: &mut FindMove) {
     loop {
         match board.turn() {
             None => {

@@ -1,7 +1,6 @@
 use super::{BitBoard, Board, Point, Side, Size};
 use std::{f64, i32};
 use std::cmp::Ordering;
-use std::ops::Mul;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Score {
@@ -71,20 +70,6 @@ impl Ord for Score {
     }
 }
 
-impl Mul<i32> for Score {
-    type Output = Score;
-
-    fn mul(self, coef: i32) -> Score {
-        match self {
-            Score::NegInfinity => Score::NegInfinity,
-            Score::Infinity => Score::Infinity,
-            Score::Running(v) => Score::Running((coef as f64) * v),
-            Score::Ended(v) => Score::Ended(coef * v),
-
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct Evaluator {
     weights: Vec<(i32, BitBoard)>,
@@ -134,19 +119,29 @@ impl Evaluator {
         Evaluator { weights: weights }
     }
 
-    pub fn eval_board(&self, board: &Board) -> Score {
+    pub fn eval_board(&self, board: &Board, myside: Side) -> Score {
         match board.turn() {
             Some(_) => {
                 let num_disk = (board.black_cells() | board.white_cells()).num_bits() as f64;
                 let disk_score = self.eval_disk_place(board) as f64;
                 let cand_score = self.eval_place_candidates(board) as f64;
                 // TODO: set appropriate score weights
-                Score::Running(disk_score / num_disk + 0.1 * cand_score)
+                let black_score = disk_score / num_disk + 0.1 * cand_score;
+                let score = match myside {
+                    Side::Black => black_score,
+                    Side::White => -black_score,
+                };
+                Score::Running(score)
             }
             None => {
                 let black = board.black_cells().num_bits() as i32;
                 let white = board.white_cells().num_bits() as i32;
-                Score::Ended(black - white)
+                let black_score = black - white;
+                let score = match myside {
+                    Side::Black => black_score,
+                    Side::White => -black_score,
+                };
+                Score::Ended(score)
             }
         }
     }
