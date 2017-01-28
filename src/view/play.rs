@@ -45,7 +45,7 @@ pub fn set_widgets(ui: &mut UiCell,
         let disk = {
             let mut disk = OthelloDisk::new();
             if let Some(turn) = play.turn() {
-                if play.can_place(pt) && !play.has_player(turn) {
+                if play.can_move(pt) && !play.has_player(turn) {
                     disk = disk.flow_disk(turn);
                 }
             }
@@ -64,7 +64,7 @@ pub fn set_widgets(ui: &mut UiCell,
         if clicked {
             if let Some(turn) = play.turn() {
                 if !play.has_player(turn) {
-                    play.place(pt);
+                    play.make_move(pt);
                 }
             }
         }

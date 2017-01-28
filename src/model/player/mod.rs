@@ -9,7 +9,7 @@ mod random;
 
 #[derive(Clone, Debug)]
 pub enum Message {
-    Place(Side, Point),
+    MakeMove(Side, Point),
     Exit,
 }
 
@@ -109,8 +109,8 @@ impl Player {
         self.receiver.try_recv()
     }
 
-    pub fn place(&self, turn: Side, pt: Point) -> Result<(), SendError<Message>> {
-        self.sender.send(Message::Place(turn, pt))
+    pub fn make_move(&self, turn: Side, pt: Point) -> Result<(), SendError<Message>> {
+        self.sender.send(Message::MakeMove(turn, pt))
     }
 }
 
@@ -135,8 +135,8 @@ pub fn ai_main(side: Side,
             Some(turn) => {
                 if turn != side {
                     match rx.recv() {
-                        Ok(Message::Place(_, pt)) => {
-                            board.place(pt);
+                        Ok(Message::MakeMove(_, pt)) => {
+                            board = board.make_move(pt).expect("cannot make_move");
                             continue;
                         }
                         Ok(Message::Exit) => break,
@@ -145,9 +145,7 @@ pub fn ai_main(side: Side,
                 }
 
                 let pt = player.find_move(board);
-                if !board.place(pt) {
-                    panic!("cannot place: {:?}", pt);
-                }
+                board = board.make_move(pt).expect("cannot make_move");
                 tx.send(pt).unwrap();
             }
         }

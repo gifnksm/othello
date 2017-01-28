@@ -9,7 +9,7 @@ pub struct Board {
     offset: MdOffset,
     black_cells: BitBoard,
     white_cells: BitBoard,
-    place_cand: BitBoard,
+    move_cand: BitBoard,
 }
 
 impl Board {
@@ -26,9 +26,9 @@ impl Board {
                          BitBoard::from_point(Point(x + 1, y + 1), size),
             white_cells: BitBoard::from_point(Point(x + 1, y), size) |
                          BitBoard::from_point(Point(x, y + 1), size),
-            place_cand: BitBoard::empty(),
+            move_cand: BitBoard::empty(),
         };
-        board.update_place_cand();
+        board.move_cand = board.compute_move_cand();
         board
     }
 
@@ -48,8 +48,8 @@ impl Board {
         self.white_cells
     }
 
-    pub fn place_candidates(&self) -> BitBoard {
-        self.place_cand
+    pub fn move_candidates(&self) -> BitBoard {
+        self.move_cand
     }
 
     pub fn num_disk(&self, side: Side) -> u32 {
@@ -69,14 +69,44 @@ impl Board {
         }
     }
 
-    pub fn flip_disks(&self, pt: Point) -> Option<(Side, BitBoard)> {
+    pub fn make_move(&self, pt: Point) -> Option<Board> {
+        let (turn, flip) = if let Some(tp) = self.flip_disks(pt) {
+            tp
+        } else {
+            return None;
+        };
+
+        let mut board = *self;
+        match turn {
+            Side::Black => {
+                board.black_cells |= flip;
+                board.white_cells &= !flip;
+            }
+            Side::White => {
+                board.white_cells |= flip;
+                board.black_cells &= !flip;
+            }
+        }
+
+        for &t in &[Some(turn.flip()), Some(turn), None] {
+            board.turn = t;
+            board.move_cand = board.compute_move_cand();
+            if !board.move_cand.is_empty() {
+                break;
+            }
+        }
+
+        Some(board)
+    }
+
+    fn flip_disks(&self, pt: Point) -> Option<(Side, BitBoard)> {
         let turn = if let Some(turn) = self.turn {
             turn
         } else {
             return None;
         };
 
-        if !self.place_cand.contains(pt, self.size) {
+        if !self.move_cand.contains(pt, self.size) {
             return None;
         }
 
@@ -108,46 +138,11 @@ impl Board {
         Some((turn, flip))
     }
 
-    pub fn place(&mut self, pt: Point) -> bool {
-        let (turn, flip) = if let Some(tp) = self.flip_disks(pt) {
-            tp
-        } else {
-            return false;
-        };
-
-        match turn {
-            Side::Black => {
-                self.black_cells |= flip;
-                self.white_cells &= !flip;
-                self.turn = Some(Side::White);
-            }
-            Side::White => {
-                self.white_cells |= flip;
-                self.black_cells &= !flip;
-                self.turn = Some(Side::Black);
-            }
-        }
-        self.update_place_cand();
-        if !self.place_cand.is_empty() {
-            return true;
-        }
-
-        self.turn = Some(turn);
-        self.update_place_cand();
-        if !self.place_cand.is_empty() {
-            return true;
-        }
-
-        self.turn = None;
-        self.place_cand = BitBoard::empty();
-        true
-    }
-
-    fn update_place_cand(&mut self) {
+    fn compute_move_cand(&self) -> BitBoard {
         let (me, you) = match self.turn {
             Some(Side::Black) => (self.black_cells, self.white_cells),
             Some(Side::White) => (self.white_cells, self.black_cells),
-            None => return,
+            None => return BitBoard::empty(),
         };
 
         let mut cand = BitBoard::empty();
@@ -167,6 +162,6 @@ impl Board {
             cand |= (you_cont_mask & me_mask).or_all();
         }
 
-        self.place_cand = cand;
+        cand
     }
 }

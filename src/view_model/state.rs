@@ -64,8 +64,8 @@ impl PlayState {
             return;
         };
 
-        if !self.place(pt) {
-            panic!("cannot place: {:?}", pt);
+        if !self.make_move(pt) {
+            panic!("cannot make_move: {:?}", pt);
         }
     }
 
@@ -73,8 +73,8 @@ impl PlayState {
         self.board.turn()
     }
 
-    pub fn can_place(&self, pt: Point) -> bool {
-        self.board.place_candidates().contains(pt, self.board.size())
+    pub fn can_move(&self, pt: Point) -> bool {
+        self.board.move_candidates().contains(pt, self.board.size())
     }
 
     pub fn get_disk_at(&self, pt: Point) -> Option<Side> {
@@ -86,18 +86,19 @@ impl PlayState {
     }
 
 
-    pub fn place(&mut self, pt: Point) -> bool {
+    pub fn make_move(&mut self, pt: Point) -> bool {
         let turn = match self.board.turn() {
             Some(turn) => turn,
             None => return false,
         };
 
-        if !self.board.place(pt) {
-            return false;
-        }
+        self.board = match self.board.make_move(pt) {
+            None => return false,
+            Some(board) => board,
+        };
 
         if let Some(ref player) = *self.get_player(turn.flip()) {
-            player.place(turn, pt).unwrap();
+            player.make_move(turn, pt).unwrap();
         }
 
         true

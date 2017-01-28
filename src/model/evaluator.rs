@@ -124,7 +124,7 @@ impl Evaluator {
             Some(_) => {
                 let num_disk = (board.black_cells() | board.white_cells()).num_bits() as f64;
                 let disk_score = self.eval_disk_place(board) as f64;
-                let cand_score = self.eval_place_candidates(board) as f64;
+                let cand_score = self.eval_move_candidates(board) as f64;
                 // TODO: set appropriate score weights
                 let black_score = disk_score / num_disk + 0.1 * cand_score;
                 let score = match myside {
@@ -158,8 +158,8 @@ impl Evaluator {
         black - white
     }
 
-    fn eval_place_candidates(&self, board: &Board) -> i32 {
-        let num_cand = board.place_candidates().num_bits() as i32;
+    fn eval_move_candidates(&self, board: &Board) -> i32 {
+        let num_cand = board.move_candidates().num_bits() as i32;
         match board.turn() {
             Some(Side::Black) => num_cand,
             Some(Side::White) => -num_cand,

@@ -40,17 +40,13 @@ impl FindMove for Player {
     fn find_move(&mut self, board: Board) -> Point {
         assert!(board.turn() == Some(self.side));
 
-        let cands = board.place_candidates();
+        let cands = board.move_candidates();
         let size = board.size();
         let num_cands = cands.num_bits();
         let child_num_eval = (self.num_eval as f64) / (num_cands as f64);
 
         cands.points(size)
-            .map(move |pt| {
-                let mut board = board;
-                board.place(pt);
-                (pt, board)
-            })
+            .map(move |pt| (pt, board.make_move(pt).unwrap()))
             .map(|(pt, board)| (pt, self.get_score(&board, child_num_eval)))
             .max_by_key(|e| e.1)
             .unwrap()
@@ -68,16 +64,12 @@ impl Player {
             return self.evaluator.eval_board(board, self.side);
         }
 
-        let cands = board.place_candidates();
+        let cands = board.move_candidates();
         let size = board.size();
         let num_cands = cands.num_bits();
         let child_num_eval = num_eval / (num_cands as f64);
 
-        let it = cands.points(size).map(|pt| {
-            let mut board = *board;
-            board.place(pt);
-            board
-        });
+        let it = cands.points(size).map(|pt| board.make_move(pt).unwrap());
 
         if board.turn() == Some(self.side) {
             let mut alpha = alpha;
