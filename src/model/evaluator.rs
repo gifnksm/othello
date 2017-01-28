@@ -36,13 +36,18 @@ impl PartialOrd for Score {
 impl Ord for Score {
     fn cmp(&self, other: &Score) -> Ordering {
         match (*self, *other) {
-            (Score::NegInfinity, Score::NegInfinity) => Ordering::Equal,
-            (Score::NegInfinity, _) => Ordering::Less,
-            (_, Score::NegInfinity) => Ordering::Greater,
+            (Score::NegInfinity, Score::NegInfinity) |
             (Score::Infinity, Score::Infinity) => Ordering::Equal,
-            (Score::Infinity, _) => Ordering::Greater,
+
+            (Score::NegInfinity, _) |
             (_, Score::Infinity) => Ordering::Less,
+
+            (_, Score::NegInfinity) |
+            (Score::Infinity, _) => Ordering::Greater,
+
             (Score::Running(s), Score::Running(o)) => s.partial_cmp(&o).unwrap(),
+            (Score::Ended(s), Score::Ended(o)) => s.cmp(&o),
+
             (Score::Running(s), Score::Ended(o)) => {
                 match o.cmp(&0) {
                     // o must loose
@@ -63,7 +68,6 @@ impl Ord for Score {
                     Ordering::Equal => o.partial_cmp(&0.0).unwrap().reverse(),
                 }
             }
-            (Score::Ended(s), Score::Ended(o)) => s.cmp(&o),
         }
     }
 }

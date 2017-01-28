@@ -10,11 +10,14 @@
 #![warn(unused_qualifications)]
 #![warn(unused_results)]
 
-#![cfg_attr(feature="dev", feature(plugin))]
-#![cfg_attr(feature="dev", plugin(clippy))]
-#![cfg_attr(feature="dev", warn(mut_mut))]
-#![cfg_attr(feature="dev", warn(string_add))]
-#![cfg_attr(feature="dev", warn(string_add_assign))]
+#![cfg_attr(feature="nightly", feature(plugin))]
+#![cfg_attr(feature="nightly", plugin(clippy))]
+#![cfg_attr(feature="nightly", warn(mut_mut))]
+#![cfg_attr(feature="nightly", warn(string_add))]
+#![cfg_attr(feature="nightly", warn(string_add_assign))]
+
+#![cfg_attr(feature="nightly", feature(windows_subsystem))]
+#![cfg_attr(feature="nightly", windows_subsystem="windows")]
 
 #[macro_use]
 extern crate conrod;
