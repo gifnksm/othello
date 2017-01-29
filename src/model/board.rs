@@ -22,10 +22,10 @@ impl Board {
             size: size,
             turn: Some(Side::Black),
             offset: MdOffset::from_size(size),
-            black_cells: BitBoard::from_point(Point(x, y), size) |
-                         BitBoard::from_point(Point(x + 1, y + 1), size),
-            white_cells: BitBoard::from_point(Point(x + 1, y), size) |
+            black_cells: BitBoard::from_point(Point(x + 1, y), size) |
                          BitBoard::from_point(Point(x, y + 1), size),
+            white_cells: BitBoard::from_point(Point(x, y), size) |
+                         BitBoard::from_point(Point(x + 1, y + 1), size),
             move_cand: BitBoard::empty(),
         };
         board.move_cand = board.compute_move_cand();
