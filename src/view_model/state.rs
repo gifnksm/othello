@@ -1,4 +1,4 @@
-use model::{Board, Player, PlayerKind, Point, Side, Size};
+use model::{AiPlayer, Board, PlayerKind, Point, Side, Size};
 use std::mem;
 use std::sync::mpsc::TryRecvError;
 
@@ -11,48 +11,50 @@ pub struct PlayState {
     board: Board,
     black_kind: PlayerKind,
     white_kind: PlayerKind,
-    black_player: Option<Player>,
-    white_player: Option<Player>,
+    black_ai_player: Option<AiPlayer>,
+    white_ai_player: Option<AiPlayer>,
 }
 
 impl PlayState {
     pub fn new(size: Size, black_kind: PlayerKind, white_kind: PlayerKind) -> PlayState {
         let board = Board::new(size);
-        let black_player = Player::new(black_kind, &board, Side::Black);
-        let white_player = Player::new(white_kind, &board, Side::White);
         PlayState {
             board: board,
             black_kind: black_kind,
             white_kind: white_kind,
-            black_player: black_player,
-            white_player: white_player,
+            black_ai_player: AiPlayer::new(black_kind, &board, Side::Black),
+            white_ai_player: AiPlayer::new(white_kind, &board, Side::White),
         }
     }
 
-    pub fn finish(&mut self) {
-        if let Some(p) = mem::replace(&mut self.black_player, None) {
+    fn finish(&mut self) {
+        if let Some(p) = mem::replace(&mut self.black_ai_player, None) {
             p.finish();
         }
-        if let Some(p) = mem::replace(&mut self.white_player, None) {
+        if let Some(p) = mem::replace(&mut self.white_ai_player, None) {
             p.finish();
         }
     }
 
-    pub fn has_player(&self, side: Side) -> bool {
-        self.player(side).is_some()
+    pub fn is_waiting_user_input(&self) -> bool {
+        self.board.turn().map(|side| self.ai_player(side).is_none()).unwrap_or(false)
     }
 
-    fn player(&self, side: Side) -> &Option<Player> {
-        match side {
-            Side::Black => &self.black_player,
-            Side::White => &self.white_player,
-        }
+    pub fn board(&self) -> &Board {
+        &self.board
     }
 
     pub fn player_kind(&self, side: Side) -> PlayerKind {
         match side {
             Side::Black => self.black_kind,
             Side::White => self.white_kind,
+        }
+    }
+
+    fn ai_player(&self, side: Side) -> &Option<AiPlayer> {
+        match side {
+            Side::Black => &self.black_ai_player,
+            Side::White => &self.white_ai_player,
         }
     }
 
@@ -65,7 +67,7 @@ impl PlayState {
             }
         };
 
-        let pt = if let Some(ref player) = *self.player(turn) {
+        let pt = if let Some(ref player) = *self.ai_player(turn) {
             match player.listen() {
                 Ok(pt) => pt,
                 Err(TryRecvError::Empty) => return,
@@ -80,23 +82,6 @@ impl PlayState {
         }
     }
 
-    pub fn turn(&self) -> Option<Side> {
-        self.board.turn()
-    }
-
-    pub fn can_move(&self, pt: Point) -> bool {
-        self.board.move_candidates().contains(pt, self.board.size())
-    }
-
-    pub fn get_disk_at(&self, pt: Point) -> Option<Side> {
-        self.board.get(pt)
-    }
-
-    pub fn num_disk(&self, side: Side) -> u32 {
-        self.board.num_disk(side)
-    }
-
-
     pub fn make_move(&mut self, pt: Point) -> bool {
         let turn = match self.board.turn() {
             Some(turn) => turn,
@@ -108,7 +93,7 @@ impl PlayState {
             Some(board) => board,
         };
 
-        if let Some(ref player) = *self.player(turn.flip()) {
+        if let Some(ref player) = *self.ai_player(turn.flip()) {
             player.make_move(turn, pt).unwrap();
         }
 

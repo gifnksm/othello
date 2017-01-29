@@ -101,7 +101,7 @@ impl Widget for OthelloDisk {
 
     fn update(self, args: UpdateArgs<Self>) -> Self::Event {
         let UpdateArgs { id, state, rect, mut ui, style, .. } = args;
-        let (_xy, dim) = rect.xy_dim();
+        let dim = rect.dim();
         let radius_ratio = style.radius_ratio(ui.theme());
         let radius = rect.w() * radius_ratio;
         let (interaction, clicked) = {
@@ -123,15 +123,12 @@ impl Widget for OthelloDisk {
             (interaction, clicked)
         };
 
-        let background_color = style.background_color(ui.theme());
-        let border = style.border(ui.theme());
-        let border_color = style.border_color(ui.theme());
         BorderedRectangle::new(dim)
             .middle_of(id)
             .graphics_for(id)
-            .color(background_color)
-            .border(border)
-            .border_color(border_color)
+            .color(style.background_color(ui.theme()))
+            .border(style.border(ui.theme()))
+            .border_color(style.border_color(ui.theme()))
             .set(state.ids.rectangle, &mut ui);
 
         let circle_param = if let Some(side) = self.disk {

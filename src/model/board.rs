@@ -60,6 +60,8 @@ impl Board {
     }
 
     pub fn get(&self, pt: Point) -> Option<Side> {
+        assert!(pt.0 < self.size.0 && pt.1 < self.size.1);
+
         if self.black_cells.contains(pt, self.size) {
             Some(Side::Black)
         } else if self.white_cells.contains(pt, self.size) {
@@ -70,6 +72,8 @@ impl Board {
     }
 
     pub fn make_move(&self, pt: Point) -> Option<Board> {
+        assert!(pt.0 < self.size.0 && pt.1 < self.size.1);
+
         let (turn, flip) = if let Some(tp) = self.flip_disks(pt) {
             tp
         } else {

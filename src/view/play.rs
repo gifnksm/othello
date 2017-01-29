@@ -1,11 +1,11 @@
 use super::Ids;
-use super::othello_disk::OthelloDisk;
+use super::widget::{OthelloBoard, OthelloDisk};
 use conrod::{Borderable, Sizeable, UiCell, Widget};
 use conrod::Positionable;
 use conrod::color::Colorable;
-use conrod::widget::{Canvas, Circle, Matrix, Rectangle, Text};
+use conrod::widget::{Canvas, Rectangle, Text};
 use conrod::widget::line::Style as LineStyle;
-use model::{Point, Side};
+use model::Side;
 use view_model::{GameConfig, PlayState, State, ViewConfig};
 
 pub fn set_widgets(ui: &mut UiCell,
@@ -34,51 +34,23 @@ pub fn set_widgets(ui: &mut UiCell,
         .middle_of(ids.canvas)
         .set(ids.play_canvas, ui);
 
-    let mut elements = Matrix::new(cols as usize, rows as usize)
+    let show_candidates = play.is_waiting_user_input();
+    let disk_clicked = OthelloBoard::new(play.board(), show_candidates)
         .top_left_with_margins_on(ids.play_canvas, vc.board_margin, vc.board_margin)
-        .w_h(vc.cell_size * (cols as f64), vc.cell_size * (rows as f64))
+        .w_h(board_width, board_height)
+        .background_color(vc.board_color)
+        .border(vc.border_width)
+        .border_color(vc.border_color)
+        .white_color(vc.white_color)
+        .black_color(vc.black_color)
+        .radius_ratio(vc.disk_radius_ratio)
+        .dot_radius(vc.dot_radius)
         .set(ids.board, ui);
 
-    while let Some(element) = elements.next(ui) {
-        let pt = Point(element.row as u32, element.col as u32);
-
-        let disk = {
-            let mut disk = OthelloDisk::new();
-            if let Some(turn) = play.turn() {
-                if play.can_move(pt) && !play.has_player(turn) {
-                    disk = disk.flow_disk(turn);
-                }
-            }
-            if let Some(side) = play.get_disk_at(pt) {
-                disk = disk.disk(side);
-            }
-            disk.background_color(vc.board_color)
-                .border(vc.border_width)
-                .border_color(vc.border_color)
-                .white_color(vc.white_color)
-                .black_color(vc.black_color)
-                .radius_ratio(vc.disk_radius_ratio)
-        };
-
-        let clicked = element.set(disk, ui);
-        if clicked {
-            if let Some(turn) = play.turn() {
-                if !play.has_player(turn) {
-                    play.make_move(pt);
-                }
-            }
+    if let Some(pt) = disk_clicked {
+        if play.is_waiting_user_input() {
+            play.make_move(pt);
         }
-    }
-
-    let x = vc.cell_size * ((cols / 4) as f64);
-    let y = vc.cell_size * ((rows / 4) as f64);
-    let signs = &[(-1.0, 1.0), (1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)];
-    ids.dots.resize(signs.len(), &mut ui.widget_id_generator());
-    for (&id, &(sx, sy)) in ids.dots.iter().zip(signs) {
-        Circle::fill(vc.dot_radius)
-            .x_y_relative_to(ids.board, sx * x, sy * y)
-            .color(vc.border_color)
-            .set(id, ui);
     }
 
     let sides = &[Side::Black, Side::White];
@@ -113,7 +85,7 @@ pub fn set_widgets(ui: &mut UiCell,
             .disk(side)
             .set(icon_id, ui);
 
-        Text::new(&play.num_disk(side).to_string())
+        Text::new(&play.board().num_disk(side).to_string())
             .w(vc.indicator_text_width)
             .right_from(icon_id, 0.0)
             .font_size(60)

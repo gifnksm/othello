@@ -39,7 +39,7 @@ pub fn set_widgets(ui: &mut UiCell,
 
     let player_kinds = PlayerKind::all_values();
     gc.black_player = DropDownList::new(&player_kinds, Some(gc.black_player.to_index()))
-        .w_h(150.0, 50.0)
+        .w_h(300.0, 50.0)
         .down_from(ids.times_label, 40.0)
         .left_from(ids.times_label, 30.0)
         .label("Black Player")
@@ -47,7 +47,7 @@ pub fn set_widgets(ui: &mut UiCell,
         .map(|idx| player_kinds[idx])
         .unwrap_or(gc.black_player);
     gc.white_player = DropDownList::new(&player_kinds, Some(gc.white_player.to_index()))
-        .w_h(150.0, 50.0)
+        .w_h(300.0, 50.0)
         .down_from(ids.times_label, 40.0)
         .right_from(ids.times_label, 30.0)
         .label("White Player")
@@ -55,7 +55,7 @@ pub fn set_widgets(ui: &mut UiCell,
         .map(|idx| player_kinds[idx])
         .unwrap_or(gc.white_player);
 
-    let clicked = Button::new()
+    let start_clicked = Button::new()
         .w_h(200.0, 50.0)
         .down_from(ids.times_label, 130.0)
         .align_middle_x_of(ids.times_label)
@@ -63,8 +63,8 @@ pub fn set_widgets(ui: &mut UiCell,
         .set(ids.start_button, ui)
         .was_clicked();
 
-    if clicked {
-        let new_state = State::Play(PlayState::new(Size(gc.rows.to_value(), gc.cols.to_value()),
+    if start_clicked {
+        let new_state = State::Play(PlayState::new(Size(gc.cols.to_value(), gc.rows.to_value()),
                                                    gc.black_player,
                                                    gc.white_player));
         Some(new_state)

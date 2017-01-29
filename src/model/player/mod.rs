@@ -1,10 +1,10 @@
-use self::ai::Player as AiPlayer;
+use self::alpha_beta::Player as AlphaBetaPlayer;
 use self::random::Player as RandomPlayer;
 use model::{Board, Point, Side};
 use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
 use std::thread::{self, JoinHandle};
 
-mod ai;
+mod alpha_beta;
 mod random;
 
 #[derive(Clone, Debug)]
@@ -22,9 +22,9 @@ pub enum PlayerKind {
 #[derive(Copy, Clone, Debug)]
 pub enum AiKind {
     Random,
-    Weak,
-    Medium,
-    Strong,
+    AlphaBetaWeak,
+    AlphaBetaMedium,
+    AlphaBetaStrong,
 }
 
 impl Default for PlayerKind {
@@ -39,10 +39,10 @@ impl AsRef<str> for PlayerKind {
         use self::AiKind::*;
         match *self {
             Human => "Human",
-            Ai(Random) => "Random",
-            Ai(Weak) => "AI (weak)",
-            Ai(Medium) => "AI (medium)",
-            Ai(Strong) => "AI (strong)",
+            Ai(Random) => "AI: random",
+            Ai(AlphaBetaWeak) => "AI: alpha-beta (weak)",
+            Ai(AlphaBetaMedium) => "AI: alpha-beta (medium)",
+            Ai(AlphaBetaStrong) => "AI: alpha-beta (strong)",
         }
     }
 }
@@ -51,7 +51,7 @@ impl PlayerKind {
     pub fn all_values() -> [Self; 5] {
         use self::PlayerKind::*;
         use self::AiKind::*;
-        [Human, Ai(Random), Ai(Weak), Ai(Medium), Ai(Strong)]
+        [Human, Ai(Random), Ai(AlphaBetaWeak), Ai(AlphaBetaMedium), Ai(AlphaBetaStrong)]
     }
 
     pub fn to_index(&self) -> usize {
@@ -60,21 +60,21 @@ impl PlayerKind {
         match *self {
             Human => 0,
             Ai(Random) => 1,
-            Ai(Weak) => 2,
-            Ai(Medium) => 3,
-            Ai(Strong) => 4,
+            Ai(AlphaBetaWeak) => 2,
+            Ai(AlphaBetaMedium) => 3,
+            Ai(AlphaBetaStrong) => 4,
         }
     }
 }
 
-pub struct Player {
+pub struct AiPlayer {
     handle: JoinHandle<()>,
     receiver: Receiver<Point>,
     sender: Sender<Message>,
 }
 
-impl Player {
-    pub fn new(kind: PlayerKind, board: &Board, side: Side) -> Option<Player> {
+impl AiPlayer {
+    pub fn new(kind: PlayerKind, board: &Board, side: Side) -> Option<AiPlayer> {
         let ai_kind = match kind {
             PlayerKind::Human => return None,
             PlayerKind::Ai(ai_kind) => ai_kind,
@@ -86,14 +86,18 @@ impl Player {
         let handle = thread::spawn(move || {
             let mut player: Box<FindMove> = match ai_kind {
                 AiKind::Random => Box::new(RandomPlayer::new()),
-                AiKind::Weak => Box::new(AiPlayer::new_weak(side, board.size())),
-                AiKind::Medium => Box::new(AiPlayer::new_medium(side, board.size())),
-                AiKind::Strong => Box::new(AiPlayer::new_strong(side, board.size())),
+                AiKind::AlphaBetaWeak => Box::new(AlphaBetaPlayer::new_weak(side, board.size())),
+                AiKind::AlphaBetaMedium => {
+                    Box::new(AlphaBetaPlayer::new_medium(side, board.size()))
+                }
+                AiKind::AlphaBetaStrong => {
+                    Box::new(AlphaBetaPlayer::new_strong(side, board.size()))
+                }
             };
             ai_main(side, player_tx, player_rx, board, &mut *player);
         });
 
-        Some(Player {
+        Some(AiPlayer {
             handle: handle,
             receiver: host_rx,
             sender: host_tx,

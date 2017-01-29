@@ -1,5 +1,3 @@
-
-
 use super::BoardSize;
 use conrod::color::{self, Color};
 use model::PlayerKind;

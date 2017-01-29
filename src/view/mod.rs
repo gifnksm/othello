@@ -2,9 +2,9 @@ use conrod::UiCell;
 
 use view_model::{App, State};
 
-mod othello_disk;
 mod start;
 mod play;
+mod widget;
 
 widget_ids! {
     #[derive(Clone, Debug, PartialEq)]
@@ -20,7 +20,8 @@ widget_ids! {
 
         play_canvas,
         board,
-        dots[],
+        black_indicator,
+        white_indicator,
         indicator_label_icons[],
         indicator_label_texts[],
         indicator_player_texts[],
