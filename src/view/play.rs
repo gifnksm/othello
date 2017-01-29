@@ -82,15 +82,28 @@ pub fn set_widgets(ui: &mut UiCell,
     }
 
     let sides = &[Side::Black, Side::White];
+    ids.indicator_player_texts.resize(sides.len(), &mut ui.widget_id_generator());
     ids.indicator_label_icons.resize(sides.len(), &mut ui.widget_id_generator());
     ids.indicator_label_texts.resize(sides.len(), &mut ui.widget_id_generator());
-    let iter = ids.indicator_label_icons.iter().zip(ids.indicator_label_texts.iter()).zip(sides);
-    for ((&icon_id, &text_id), &side) in iter {
-        if icon_id == ids.indicator_label_icons[0] {
-                OthelloDisk::new().right_from(ids.board, vc.board_margin)
-            } else {
-                OthelloDisk::new().down_from(ids.indicator_label_icons[0], 0.0)
-            }
+    let iter = ids.indicator_player_texts
+        .iter()
+        .zip(ids.indicator_label_icons.iter())
+        .zip(ids.indicator_label_texts.iter())
+        .zip(sides);
+    for (((&player_id, &icon_id), &text_id), &side) in iter {
+        let kind = play.player_kind(side);
+        let player = Text::new(kind.as_ref());
+        let player = if player_id == ids.indicator_player_texts[0] {
+            player.right_from(ids.board, vc.board_margin)
+        } else {
+            player.down_from(ids.indicator_label_icons[0], 10.0)
+        };
+        player.w(vc.cell_size + vc.indicator_text_width)
+            .font_size(30)
+            .set(player_id, ui);
+
+        OthelloDisk::new()
+            .down_from(player_id, 0.0)
             .w_h(vc.cell_size, vc.cell_size)
             .background_color(vc.board_color)
             .border(0.0)

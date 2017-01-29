@@ -8,9 +8,11 @@ pub enum State {
 }
 
 pub struct PlayState {
+    board: Board,
+    black_kind: PlayerKind,
+    white_kind: PlayerKind,
     black_player: Option<Player>,
     white_player: Option<Player>,
-    board: Board,
 }
 
 impl PlayState {
@@ -20,6 +22,8 @@ impl PlayState {
         let white_player = Player::new(white_kind, &board, Side::White);
         PlayState {
             board: board,
+            black_kind: black_kind,
+            white_kind: white_kind,
             black_player: black_player,
             white_player: white_player,
         }
@@ -35,13 +39,20 @@ impl PlayState {
     }
 
     pub fn has_player(&self, side: Side) -> bool {
-        self.get_player(side).is_some()
+        self.player(side).is_some()
     }
 
-    pub fn get_player(&self, side: Side) -> &Option<Player> {
+    fn player(&self, side: Side) -> &Option<Player> {
         match side {
             Side::Black => &self.black_player,
             Side::White => &self.white_player,
+        }
+    }
+
+    pub fn player_kind(&self, side: Side) -> PlayerKind {
+        match side {
+            Side::Black => self.black_kind,
+            Side::White => self.white_kind,
         }
     }
 
@@ -54,7 +65,7 @@ impl PlayState {
             }
         };
 
-        let pt = if let Some(ref player) = *self.get_player(turn) {
+        let pt = if let Some(ref player) = *self.player(turn) {
             match player.listen() {
                 Ok(pt) => pt,
                 Err(TryRecvError::Empty) => return,
@@ -97,7 +108,7 @@ impl PlayState {
             Some(board) => board,
         };
 
-        if let Some(ref player) = *self.get_player(turn.flip()) {
+        if let Some(ref player) = *self.player(turn.flip()) {
             player.make_move(turn, pt).unwrap();
         }
 

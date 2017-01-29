@@ -22,7 +22,8 @@ widget_ids! {
         board,
         dots[],
         indicator_label_icons[],
-        indicator_label_texts[]
+        indicator_label_texts[],
+        indicator_player_texts[],
     }
 }
 
