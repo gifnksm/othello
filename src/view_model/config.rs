@@ -29,6 +29,7 @@ pub struct ViewConfig {
     pub dot_radius: f64,
     pub board_margin: f64,
     pub indicator_text_width: f64,
+    pub indicator_width: f64,
 
     pub border_color: Color,
     pub board_color: Color,
@@ -45,6 +46,7 @@ impl Default for ViewConfig {
             dot_radius: 6.0,
             board_margin: 40.0,
             indicator_text_width: 90.0,
+            indicator_width: 240.0,
 
             border_color: color::BLACK,
             board_color: color::rgba(0.0, 0.5, 0.0, 1.0),

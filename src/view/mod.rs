@@ -22,9 +22,6 @@ widget_ids! {
         board,
         black_indicator,
         white_indicator,
-        indicator_label_icons[],
-        indicator_label_texts[],
-        indicator_player_texts[],
     }
 }
 

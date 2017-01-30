@@ -1,9 +1,9 @@
 use super::Ids;
-use super::widget::{OthelloBoard, OthelloDisk};
+use super::widget::{Indicator, OthelloBoard};
 use conrod::{Borderable, Sizeable, UiCell, Widget};
 use conrod::Positionable;
 use conrod::color::Colorable;
-use conrod::widget::{Canvas, Rectangle, Text};
+use conrod::widget::{Canvas, Rectangle};
 use conrod::widget::line::Style as LineStyle;
 use model::Side;
 use view_model::{GameConfig, PlayState, State, ViewConfig};
@@ -53,44 +53,24 @@ pub fn set_widgets(ui: &mut UiCell,
         }
     }
 
-    let sides = &[Side::Black, Side::White];
-    ids.indicator_player_texts.resize(sides.len(), &mut ui.widget_id_generator());
-    ids.indicator_label_icons.resize(sides.len(), &mut ui.widget_id_generator());
-    ids.indicator_label_texts.resize(sides.len(), &mut ui.widget_id_generator());
-    let iter = ids.indicator_player_texts
-        .iter()
-        .zip(ids.indicator_label_icons.iter())
-        .zip(ids.indicator_label_texts.iter())
-        .zip(sides);
-    for (((&player_id, &icon_id), &text_id), &side) in iter {
-        let kind = play.player_kind(side);
-        let player = Text::new(kind.as_ref());
-        let player = if player_id == ids.indicator_player_texts[0] {
-            player.right_from(ids.board, vc.board_margin)
-        } else {
-            player.down_from(ids.indicator_label_icons[0], 10.0)
-        };
-        player.w(vc.cell_size + vc.indicator_text_width)
-            .font_size(30)
-            .set(player_id, ui);
-
-        OthelloDisk::new()
-            .down_from(player_id, 0.0)
-            .w_h(vc.cell_size, vc.cell_size)
+    let pairs = &[(Side::Black, ids.black_indicator), (Side::White, ids.white_indicator)];
+    for &(side, id) in pairs {
+        Indicator::new(side, play.player_kind(side), play.board().num_disk(side))
+            .and(|build| if id == ids.black_indicator {
+                build.right_from(ids.board, vc.board_margin)
+            } else {
+                build.down_from(ids.black_indicator, 10.0)
+            })
+            .w(vc.indicator_width)
             .background_color(vc.board_color)
-            .border(0.0)
+            .border(vc.border_width)
+            .player_name_font_size(20)
+            .count_font_size(60)
             .white_color(vc.white_color)
             .black_color(vc.black_color)
+            .cell_size(vc.cell_size)
             .radius_ratio(vc.disk_radius_ratio)
-            .disk(side)
-            .set(icon_id, ui);
-
-        Text::new(&play.board().num_disk(side).to_string())
-            .w(vc.indicator_text_width)
-            .right_from(icon_id, 0.0)
-            .font_size(60)
-            .align_text_right()
-            .set(text_id, ui);
+            .set(id, ui);
     }
 
     None
