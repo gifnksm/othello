@@ -1,78 +1,39 @@
-use super::{BitBoard, Board, Point, Side, Size};
+use super::{Evaluate, Score};
+use model::{BitBoard, Board, Point, Side, Size};
 use std::{f64, i32};
-use std::cmp::Ordering;
-
-#[derive(Copy, Clone, Debug)]
-pub enum Score {
-    NegInfinity,
-    Infinity,
-    Running(f64),
-    Ended(i32),
-}
-
-pub const MIN_SCORE: Score = Score::NegInfinity;
-pub const MAX_SCORE: Score = Score::Infinity;
-
-impl PartialEq for Score {
-    fn eq(&self, other: &Score) -> bool {
-        match (*self, *other) {
-            (Score::Running(s), Score::Running(o)) => s == o || (s.is_nan() && o.is_nan()),
-            (Score::Ended(s), Score::Ended(o)) => s == o,
-            _ => false,
-        }
-    }
-}
-
-impl Eq for Score {}
-
-impl PartialOrd for Score {
-    fn partial_cmp(&self, other: &Score) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Score {
-    fn cmp(&self, other: &Score) -> Ordering {
-        match (*self, *other) {
-            (Score::NegInfinity, Score::NegInfinity) |
-            (Score::Infinity, Score::Infinity) => Ordering::Equal,
-
-            (Score::NegInfinity, _) |
-            (_, Score::Infinity) => Ordering::Less,
-
-            (_, Score::NegInfinity) |
-            (Score::Infinity, _) => Ordering::Greater,
-
-            (Score::Running(s), Score::Running(o)) => s.partial_cmp(&o).unwrap(),
-            (Score::Ended(s), Score::Ended(o)) => s.cmp(&o),
-
-            (Score::Running(s), Score::Ended(o)) => {
-                match o.cmp(&0) {
-                    // o must loose
-                    Ordering::Less => Ordering::Greater,
-                    // o must win
-                    Ordering::Greater => Ordering::Less,
-
-                    Ordering::Equal => s.partial_cmp(&0.0).unwrap(),
-                }
-            }
-            (Score::Ended(s), Score::Running(o)) => {
-                match s.cmp(&0) {
-                    // s must loose
-                    Ordering::Less => Ordering::Less,
-                    // s must win
-                    Ordering::Greater => Ordering::Greater,
-
-                    Ordering::Equal => o.partial_cmp(&0.0).unwrap().reverse(),
-                }
-            }
-        }
-    }
-}
 
 #[derive(Clone, Debug)]
 pub struct Evaluator {
     weights: Vec<(i32, BitBoard)>,
+}
+
+impl Evaluate for Evaluator {
+    fn evaluate(&self, board: &Board, myside: Side) -> Score {
+        match board.turn() {
+            Some(_) => {
+                let num_disk = (board.black_cells() | board.white_cells()).num_bits() as f64;
+                let disk_score = self.eval_disk_place(board) as f64;
+                let cand_score = self.eval_move_candidates(board) as f64;
+                // TODO: set appropriate score weights
+                let black_score = disk_score / num_disk + 0.1 * cand_score;
+                let score = match myside {
+                    Side::Black => black_score,
+                    Side::White => -black_score,
+                };
+                Score::Running(score)
+            }
+            None => {
+                let black = board.black_cells().num_bits() as i32;
+                let white = board.white_cells().num_bits() as i32;
+                let black_score = black - white;
+                let score = match myside {
+                    Side::Black => black_score,
+                    Side::White => -black_score,
+                };
+                Score::Ended(score)
+            }
+        }
+    }
 }
 
 impl Evaluator {
@@ -117,33 +78,6 @@ impl Evaluator {
                            (-15, edge_x_mask)];
 
         Evaluator { weights: weights }
-    }
-
-    pub fn eval_board(&self, board: &Board, myside: Side) -> Score {
-        match board.turn() {
-            Some(_) => {
-                let num_disk = (board.black_cells() | board.white_cells()).num_bits() as f64;
-                let disk_score = self.eval_disk_place(board) as f64;
-                let cand_score = self.eval_move_candidates(board) as f64;
-                // TODO: set appropriate score weights
-                let black_score = disk_score / num_disk + 0.1 * cand_score;
-                let score = match myside {
-                    Side::Black => black_score,
-                    Side::White => -black_score,
-                };
-                Score::Running(score)
-            }
-            None => {
-                let black = board.black_cells().num_bits() as i32;
-                let white = board.white_cells().num_bits() as i32;
-                let black_score = black - white;
-                let score = match myside {
-                    Side::Black => black_score,
-                    Side::White => -black_score,
-                };
-                Score::Ended(score)
-            }
-        }
     }
 
     fn eval_disk_place(&self, board: &Board) -> i32 {

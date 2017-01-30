@@ -1,42 +1,27 @@
-use super::FindMove;
-use super::super::evaluator::{Evaluator, MAX_SCORE, MIN_SCORE, Score};
-use model::{Board, Point, Side, Size};
+use super::{Evaluate, FindMove, MAX_SCORE, MIN_SCORE, Score};
+use model::{Board, Point, Side};
 use std::{cmp, u32};
 
-const WEAK_NUM_EVAL: u32 = 1_000_000;
-const MEDIUM_NUM_EVAL: u32 = 10_000_000;
-const STRONG_NUM_EVAL: u32 = 100_000_000;
-
 #[derive(Clone, Debug)]
-pub struct Player {
+pub struct Player<E> {
     side: Side,
     num_eval: u32,
-    evaluator: Evaluator,
+    evaluator: E,
 }
 
-impl Player {
-    pub fn new(side: Side, size: Size, num_eval: u32) -> Self {
+impl<E> Player<E> {
+    pub fn new(side: Side, num_eval: u32, evaluator: E) -> Self {
         Player {
             side: side,
             num_eval: num_eval,
-            evaluator: Evaluator::new(size),
+            evaluator: evaluator,
         }
-    }
-
-    pub fn new_weak(side: Side, size: Size) -> Self {
-        Self::new(side, size, WEAK_NUM_EVAL)
-    }
-
-    pub fn new_medium(side: Side, size: Size) -> Self {
-        Self::new(side, size, MEDIUM_NUM_EVAL)
-    }
-
-    pub fn new_strong(side: Side, size: Size) -> Self {
-        Self::new(side, size, STRONG_NUM_EVAL)
     }
 }
 
-impl FindMove for Player {
+impl<E> FindMove for Player<E>
+    where E: Evaluate
+{
     fn find_move(&mut self, board: Board) -> Point {
         assert!(board.turn() == Some(self.side));
 
@@ -54,14 +39,16 @@ impl FindMove for Player {
     }
 }
 
-impl Player {
+impl<E> Player<E>
+    where E: Evaluate
+{
     fn get_score(&self, board: &Board, num_eval: f64) -> Score {
         self.alphabeta(board, num_eval, MIN_SCORE, MAX_SCORE)
     }
 
     fn alphabeta(&self, board: &Board, num_eval: f64, alpha: Score, beta: Score) -> Score {
         if num_eval <= 1.0 || board.turn().is_none() {
-            return self.evaluator.eval_board(board, self.side);
+            return self.evaluator.evaluate(board, self.side);
         }
 
         let cands = board.move_candidates();

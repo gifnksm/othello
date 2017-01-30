@@ -4,7 +4,6 @@ pub use self::player::{AiPlayer, PlayerKind};
 
 mod bit_board;
 mod board;
-mod evaluator;
 mod multi_direction;
 mod player;
 

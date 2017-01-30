@@ -1,10 +1,13 @@
 use self::alpha_beta::Player as AlphaBetaPlayer;
+pub use self::evaluator::{Evaluate, EvenEvaluator, MAX_SCORE, MIN_SCORE, Score, StrongEvaluator,
+                          WeakEvaluator};
 use self::random::Player as RandomPlayer;
 use model::{Board, Point, Side};
 use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
 use std::thread::{self, JoinHandle};
 
 mod alpha_beta;
+mod evaluator;
 mod random;
 
 #[derive(Clone, Debug)]
@@ -22,9 +25,27 @@ pub enum PlayerKind {
 #[derive(Copy, Clone, Debug)]
 pub enum AiKind {
     Random,
-    AlphaBetaWeak,
-    AlphaBetaMedium,
-    AlphaBetaStrong,
+    AlphaBetaStrong(AiPower),
+    AlphaBetaEven(AiPower),
+    AlphaBetaWeak(AiPower),
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum AiPower {
+    Small,
+    Medium,
+    Large,
+}
+
+impl AiPower {
+    fn to_alpha_beta_power(&self) -> u32 {
+        use self::AiPower::*;
+        match *self {
+            Small => 1_000_000,
+            Medium => 10_000_000,
+            Large => 100_000_000,
+        }
+    }
 }
 
 impl Default for PlayerKind {
@@ -37,32 +58,57 @@ impl AsRef<str> for PlayerKind {
     fn as_ref(&self) -> &str {
         use self::PlayerKind::*;
         use self::AiKind::*;
+        use self::AiPower::*;
         match *self {
             Human => "Human",
             Ai(Random) => "AI: random",
-            Ai(AlphaBetaWeak) => "AI: alpha-beta (weak)",
-            Ai(AlphaBetaMedium) => "AI: alpha-beta (medium)",
-            Ai(AlphaBetaStrong) => "AI: alpha-beta (strong)",
+            Ai(AlphaBetaStrong(Small)) => "AI: alpha-beta strong S",
+            Ai(AlphaBetaStrong(Medium)) => "AI: alpha-beta strong M",
+            Ai(AlphaBetaStrong(Large)) => "AI: alpha-beta strong L",
+            Ai(AlphaBetaEven(Small)) => "AI: alpha-beta even S",
+            Ai(AlphaBetaEven(Medium)) => "AI: alpha-beta even M",
+            Ai(AlphaBetaEven(Large)) => "AI: alpha-beta even L",
+            Ai(AlphaBetaWeak(Small)) => "AI: alpha-beta weak S",
+            Ai(AlphaBetaWeak(Medium)) => "AI: alpha-beta weak M",
+            Ai(AlphaBetaWeak(Large)) => "AI: alpha-beta weak L",
         }
     }
 }
 
 impl PlayerKind {
-    pub fn all_values() -> [Self; 5] {
+    pub fn all_values() -> [Self; 11] {
         use self::PlayerKind::*;
         use self::AiKind::*;
-        [Human, Ai(Random), Ai(AlphaBetaWeak), Ai(AlphaBetaMedium), Ai(AlphaBetaStrong)]
+        use self::AiPower::*;
+        [Human,
+         Ai(Random),
+         Ai(AlphaBetaStrong(Small)),
+         Ai(AlphaBetaStrong(Medium)),
+         Ai(AlphaBetaStrong(Large)),
+         Ai(AlphaBetaEven(Small)),
+         Ai(AlphaBetaEven(Medium)),
+         Ai(AlphaBetaEven(Large)),
+         Ai(AlphaBetaWeak(Small)),
+         Ai(AlphaBetaWeak(Medium)),
+         Ai(AlphaBetaWeak(Large))]
     }
 
     pub fn to_index(&self) -> usize {
         use self::PlayerKind::*;
         use self::AiKind::*;
+        use self::AiPower::*;
         match *self {
             Human => 0,
             Ai(Random) => 1,
-            Ai(AlphaBetaWeak) => 2,
-            Ai(AlphaBetaMedium) => 3,
-            Ai(AlphaBetaStrong) => 4,
+            Ai(AlphaBetaStrong(Small)) => 2,
+            Ai(AlphaBetaStrong(Medium)) => 3,
+            Ai(AlphaBetaStrong(Large)) => 4,
+            Ai(AlphaBetaEven(Small)) => 5,
+            Ai(AlphaBetaEven(Medium)) => 6,
+            Ai(AlphaBetaEven(Large)) => 7,
+            Ai(AlphaBetaWeak(Small)) => 8,
+            Ai(AlphaBetaWeak(Medium)) => 9,
+            Ai(AlphaBetaWeak(Large)) => 10,
         }
     }
 }
@@ -86,12 +132,17 @@ impl AiPlayer {
         let handle = thread::spawn(move || {
             let mut player: Box<FindMove> = match ai_kind {
                 AiKind::Random => Box::new(RandomPlayer::new()),
-                AiKind::AlphaBetaWeak => Box::new(AlphaBetaPlayer::new_weak(side, board.size())),
-                AiKind::AlphaBetaMedium => {
-                    Box::new(AlphaBetaPlayer::new_medium(side, board.size()))
+                AiKind::AlphaBetaStrong(power) => {
+                    let evaluator = StrongEvaluator::new(board.size());
+                    Box::new(AlphaBetaPlayer::new(side, power.to_alpha_beta_power(), evaluator))
                 }
-                AiKind::AlphaBetaStrong => {
-                    Box::new(AlphaBetaPlayer::new_strong(side, board.size()))
+                AiKind::AlphaBetaEven(power) => {
+                    let evaluator = EvenEvaluator::new(board.size());
+                    Box::new(AlphaBetaPlayer::new(side, power.to_alpha_beta_power(), evaluator))
+                }
+                AiKind::AlphaBetaWeak(power) => {
+                    let evaluator = WeakEvaluator::new(board.size());
+                    Box::new(AlphaBetaPlayer::new(side, power.to_alpha_beta_power(), evaluator))
                 }
             };
             ai_main(side, player_tx, player_rx, board, &mut *player);
