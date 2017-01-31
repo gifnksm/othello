@@ -1,9 +1,9 @@
 use super::Ids;
 use super::widget::{Indicator, OthelloBoard};
-use conrod::{Borderable, Sizeable, UiCell, Widget};
+use conrod::{Borderable, Labelable, Sizeable, UiCell, Widget};
 use conrod::Positionable;
 use conrod::color::Colorable;
-use conrod::widget::{Canvas, Rectangle};
+use conrod::widget::{Button, Canvas, Rectangle};
 use conrod::widget::line::Style as LineStyle;
 use model::Side;
 use view_model::{GameConfig, PlayState, State, ViewConfig};
@@ -73,5 +73,17 @@ pub fn set_widgets(ui: &mut UiCell,
             .set(id, ui);
     }
 
-    None
+    let stop_clicked = Button::new()
+        .w_h(vc.indicator_width, 50.0)
+        .align_left_of(ids.black_indicator)
+        .align_bottom_of(ids.board)
+        .label("stop")
+        .set(ids.stop_button, ui)
+        .was_clicked();
+
+    if stop_clicked {
+        Some(State::Start)
+    } else {
+        None
+    }
 }

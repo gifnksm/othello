@@ -22,6 +22,7 @@ widget_ids! {
         board,
         black_indicator,
         white_indicator,
+        stop_button,
     }
 }
 
