@@ -21,7 +21,6 @@
 
 #[macro_use]
 extern crate conrod;
-extern crate find_folder;
 extern crate rand;
 extern crate vecmath;
 
@@ -30,6 +29,7 @@ use conrod::backend::piston::Window;
 use conrod::backend::piston::event::UpdateEvent;
 use conrod::backend::piston::window::{self, GlyphCache, WindowEvents, WindowSettings};
 use conrod::image::Map as ImageMap;
+use conrod::text::FontCollection;
 use view::Ids;
 use view_model::App;
 
@@ -50,11 +50,9 @@ fn main() {
 
     let mut ui = UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
 
-    let assets = find_folder::Search::KidsThenParents(3, 5)
-        .for_folder("assets")
-        .expect("faild to find assets folder");
-    let font_path = &assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
-    let _ = ui.fonts.insert_from_file(font_path).expect("failed to load font");
+    let noto_sans = include_bytes!("../assets/fonts/NotoSans/NotoSans-Regular.ttf").to_vec();
+    let font_collection = FontCollection::from_bytes(noto_sans);
+    let _ = ui.fonts.insert(font_collection.into_font().expect("failed to into_font"));
 
     let mut text_texture_cache = GlyphCache::new(&mut window, WIDTH, HEIGHT);
     let image_map = ImageMap::new();
