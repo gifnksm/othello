@@ -64,9 +64,10 @@ pub fn set_widgets(ui: &mut UiCell,
         .was_clicked();
 
     if start_clicked {
-        let new_state = State::Play(PlayState::new(Size(gc.cols.to_value(), gc.rows.to_value()),
-                                                   gc.black_player,
-                                                   gc.white_player));
+        let new_state = State::Play(Box::new(PlayState::new(Size(gc.cols.to_value(),
+                                                                 gc.rows.to_value()),
+                                                            gc.black_player,
+                                                            gc.white_player)));
         Some(new_state)
     } else {
         None

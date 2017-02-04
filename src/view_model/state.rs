@@ -4,7 +4,7 @@ use std::sync::mpsc::TryRecvError;
 
 pub enum State {
     Start,
-    Play(PlayState),
+    Play(Box<PlayState>),
 }
 
 pub struct PlayState {
