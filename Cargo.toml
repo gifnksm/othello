@@ -8,10 +8,11 @@ repository = "https://github.com/gifnksm/othello"
 description = "Othello game."
 
 [dependencies]
+clippy = {version = "0.0", optional = true}
 conrod = "0.47"
 rand = "0.3"
+ttf-noto-sans = "0.1"
 vecmath = "0.3"
-clippy = {version = "0.0", optional = true}
 
 [features]
 default = []

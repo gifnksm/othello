@@ -22,6 +22,7 @@
 #[macro_use]
 extern crate conrod;
 extern crate rand;
+extern crate ttf_noto_sans;
 extern crate vecmath;
 
 use conrod::UiBuilder;
@@ -50,8 +51,7 @@ fn main() {
 
     let mut ui = UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
 
-    let noto_sans = include_bytes!("../assets/fonts/NotoSans/NotoSans-Regular.ttf").to_vec();
-    let font_collection = FontCollection::from_bytes(noto_sans);
+    let font_collection = FontCollection::from_bytes(ttf_noto_sans::REGULAR);
     let _ = ui.fonts.insert(font_collection.into_font().expect("failed to into_font"));
 
     let mut text_texture_cache = GlyphCache::new(&mut window, WIDTH, HEIGHT);
