@@ -17,7 +17,7 @@ pub fn set_widgets(ui: &mut UiCell,
     Text::new("x")
         .w_h(30.0, 50.0)
         .font_size(40)
-        .align_text_middle()
+        .center_justify()
         .mid_top_with_margin_on(ids.canvas, 40.0)
         .set(ids.times_label, ui);
 

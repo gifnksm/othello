@@ -1,6 +1,7 @@
 use super::OthelloDisk;
-use conrod::{Borderable, Dimension, FontSize, Positionable, Scalar, Sizeable, Ui, Widget};
+use conrod::{Borderable, FontSize, Positionable, Scalar, Sizeable, Ui, Widget};
 use conrod::color::{self, Color, Colorable};
+use conrod::position::Dimension;
 use conrod::widget::{self, BorderedRectangle, CommonBuilder, Text, UpdateArgs};
 use model::{PlayerKind, Side};
 
@@ -118,7 +119,7 @@ impl Widget for Indicator {
             .w(dim[0] - 10.0 - style.cell_size(ui.theme()))
             .right_from(state.ids.icon, 0.0)
             .font_size(style.count_font_size(ui.theme()))
-            .align_text_right()
+            .right_justify()
             .set(state.ids.count, ui);
     }
 
