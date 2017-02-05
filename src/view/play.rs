@@ -77,7 +77,11 @@ pub fn set_widgets(ui: &mut UiCell,
         .w_h(vc.indicator_width, 50.0)
         .align_left_of(ids.black_indicator)
         .align_bottom_of(ids.board)
-        .label("stop")
+        .and(|button| if play.board().turn().is_some() {
+            button.label("stop")
+        } else {
+            button.label("return")
+        })
         .set(ids.stop_button, ui)
         .was_clicked();
 

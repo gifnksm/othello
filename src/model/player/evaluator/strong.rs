@@ -127,6 +127,7 @@ fn weight_mask(mask: BitBoard, size: Size) -> BitBoard {
             }
         }
     }
+
     for x in ul_size.0..dr_size.0 {
         let rx = size.0 - x - 1;
         for y in 0..ul_size.1 {
