@@ -21,8 +21,10 @@
 
 #[macro_use]
 extern crate conrod;
-extern crate piston_window;
+extern crate opengl_graphics;
+extern crate piston;
 extern crate rand;
+extern crate sdl2_window;
 extern crate ttf_noto_sans;
 extern crate vecmath;
 
@@ -30,9 +32,11 @@ use conrod::{Scalar, UiBuilder};
 use conrod::backend::piston::{draw, event};
 use conrod::image::Map as ImageMap;
 use conrod::text::{FontCollection, GlyphCache};
-use piston_window::{G2d, G2dTexture, PistonWindow, TextureSettings, UpdateEvent, Window,
-                    WindowSettings};
-use piston_window::texture::{Format, UpdateTexture};
+use opengl_graphics::{Format, GlGraphics, OpenGL, Texture, TextureSettings, UpdateTexture};
+use piston::event_loop::{EventSettings, Events};
+use piston::input::{RenderEvent, UpdateEvent};
+use piston::window::{Window, WindowSettings};
+use sdl2_window::Sdl2Window;
 use view::Ids;
 use view_model::App;
 
@@ -43,11 +47,16 @@ mod view_model;
 fn main() {
     const WIDTH: u32 = 1024;
     const HEIGHT: u32 = 768;
-    let mut window: PistonWindow = WindowSettings::new("Othello", [WIDTH, HEIGHT])
+
+    let opengl = OpenGL::V2_1;
+    let mut window: Sdl2Window = WindowSettings::new("Othello", [WIDTH, HEIGHT])
+        .opengl(opengl)
+        .srgb(false)
         .exit_on_esc(true)
         .vsync(true)
         .build()
         .expect("failed to build PistonWindow");
+    let mut gl_graphics = GlGraphics::new(opengl);
 
     let mut ui = UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
 
@@ -62,9 +71,8 @@ fn main() {
         let buffer_len = WIDTH as usize * HEIGHT as usize;
         let init = vec![128; buffer_len];
         let settings = TextureSettings::new();
-        let factory = &mut window.factory;
-        let texture = G2dTexture::from_memory_alpha(factory, &init, WIDTH, HEIGHT, &settings)
-            .unwrap();
+        let texture = Texture::from_memory_alpha(&init, WIDTH, HEIGHT, &settings)
+            .expect("failed to create Texture");
         (cache, texture)
     };
 
@@ -73,7 +81,9 @@ fn main() {
     let mut app = App::default();
     let mut ids = Ids::new(ui.widget_id_generator());
 
-    while let Some(event) = window.next() {
+    let mut events = Events::new(EventSettings::new());
+
+    while let Some(event) = events.next(&mut window) {
         let size = window.size();
         let (win_w, win_h) = (size.width as Scalar, size.height as Scalar);
         if let Some(e) = event::convert(event.clone(), win_w, win_h) {
@@ -85,32 +95,39 @@ fn main() {
             view::set_widgets(&mut ui, &mut ids, &mut app)
         });
 
-        let _ = window.draw_2d(&event, |context, graphics| if let Some(primitives) =
-            ui.draw_if_changed() {
-            let cache_queued_glyphs = |graphics: &mut G2d,
-                                       cache: &mut G2dTexture,
-                                       rect: conrod::text::rt::Rect<u32>,
-                                       data: &[u8]| {
-                let offset = [rect.min.x, rect.min.y];
-                let size = [rect.width(), rect.height()];
-                let format = Format::Rgba8;
-                let encoder = &mut *graphics.encoder;
-                text_vertex_data.clear();
-                text_vertex_data.extend(data.iter().flat_map(|&b| vec![255, 255, 255, b]));
-                UpdateTexture::update(cache, encoder, format, &text_vertex_data[..], offset, size)
-                    .expect("failed to update texture")
-            };
-            fn texture_from_image<T>(img: &T) -> &T {
-                img
-            };
-            draw::primitives(primitives,
-                             context,
-                             graphics,
-                             &mut text_texture_cache,
-                             &mut glyph_cache,
-                             &image_map,
-                             cache_queued_glyphs,
-                             texture_from_image);
-        });
+        if let Some(args) = event.render_args() {
+            gl_graphics.draw(args.viewport(),
+                             |ctx, g2d| if let Some(primitives) = ui.draw_if_changed() {
+                                 let cache_queued_glyphs = |_graphics: &mut GlGraphics,
+                                                            cache: &mut Texture,
+                                                            rect: conrod::text::rt::Rect<u32>,
+                                                            data: &[u8]| {
+                    let offset = [rect.min.x, rect.min.y];
+                    let size = [rect.width(), rect.height()];
+                    let format = Format::Rgba8;
+                    text_vertex_data.clear();
+                    text_vertex_data.extend(data.iter().flat_map(|&b| vec![255, 255, 255, b]));
+                    UpdateTexture::update(cache,
+                                          &mut (),
+                                          format,
+                                          &text_vertex_data[..],
+                                          offset,
+                                          size)
+                        .expect("failed to update texture")
+                };
+                                 fn texture_from_image<T>(img: &T) -> &T {
+                                     img
+                                 };
+                                 draw::primitives(primitives,
+                                                  ctx,
+                                                  g2d,
+                                                  &mut text_texture_cache,
+                                                  &mut glyph_cache,
+                                                  &image_map,
+                                                  cache_queued_glyphs,
+                                                  texture_from_image);
+
+                             });
+        }
     }
 }

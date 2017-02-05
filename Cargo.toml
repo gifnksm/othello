@@ -9,8 +9,11 @@ description = "Othello game."
 
 [dependencies]
 clippy = {version = "0.0", optional = true}
-conrod = {version = "0.51", features = ["piston"]} 
-piston_window = "0.63"
+conrod = {version = "0.51", features = ["piston"]}
+piston = "0.31"
+piston2d-graphics = "0.21"
+piston2d-opengl_graphics = "0.39"
+pistoncore-sdl2_window = "0.40"
 rand = "0.3"
 ttf-noto-sans = "0.1"
 vecmath = "0.3"
