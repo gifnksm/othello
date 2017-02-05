@@ -1,18 +1,6 @@
 language: rust
 sudo: false
-
-env:
-  global:
-    - LD_LIBRARY_PATH: /usr/local/lib
-install:
-    # SDL2
-    - curl -O http://www.libsdl.org/release/SDL2-2.0.5.tar.gz
-    - tar -xzvf SDL2-2.0.5.tar.gz
-    - cd SDL2-2.0.5
-    - ./configure
-    - make
-    - sudo make install
-    - cd -
+dist: trusty
 
 addons:
   apt:
@@ -20,6 +8,7 @@ addons:
       - libcurl4-openssl-dev
       - libelf-dev
       - libdw-dev
+      - libsdl2-dev
 
 rust:
   - nightly
@@ -47,4 +36,4 @@ after_success:
 
 env:
   global:
-    - TRAVIS_CARGO_NIGHTLY_FEATURE=""
+    - TRAVIS_CARGO_NIGHTLY_FEATURE="nightly"
