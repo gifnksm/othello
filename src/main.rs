@@ -32,6 +32,7 @@ use conrod::{Scalar, UiBuilder};
 use conrod::backend::piston::{draw, event};
 use conrod::image::Map as ImageMap;
 use conrod::text::{FontCollection, GlyphCache};
+use conrod::text::rt::Rect;
 use opengl_graphics::{Format, GlGraphics, OpenGL, Texture, TextureSettings, UpdateTexture};
 use piston::event_loop::{EventSettings, Events};
 use piston::input::{RenderEvent, UpdateEvent};
@@ -100,7 +101,7 @@ fn main() {
                              |ctx, g2d| if let Some(primitives) = ui.draw_if_changed() {
                                  let cache_queued_glyphs = |_graphics: &mut GlGraphics,
                                                             cache: &mut Texture,
-                                                            rect: conrod::text::rt::Rect<u32>,
+                                                            rect: Rect<u32>,
                                                             data: &[u8]| {
                     let offset = [rect.min.x, rect.min.y];
                     let size = [rect.width(), rect.height()];
