@@ -2,7 +2,7 @@
 name = "othello"
 version = "0.1.0"
 dependencies = [
- "clippy 0.0.130 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clippy 0.0.131 (registry+https://github.com/rust-lang/crates.io-index)",
  "conrod 0.51.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston 0.31.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston2d-graphics 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -54,16 +54,16 @@ dependencies = [
 
 [[package]]
 name = "clippy"
-version = "0.0.130"
+version = "0.0.131"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cargo_metadata 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy_lints 0.0.130 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clippy_lints 0.0.131 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "clippy_lints"
-version = "0.0.130"
+version = "0.0.131"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "matches 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -676,8 +676,8 @@ dependencies = [
 "checksum byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "96c8b41881888cc08af32d47ac4edd52bc7fa27fef774be47a92443756451304"
 "checksum byteorder 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c40977b0ee6b9885c9013cd41d9feffdd22deb3bb4dc3a71d901cc7a77de18c8"
 "checksum cargo_metadata 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "34fdab49a2904acb112c83b62f0118de3de3ce28e52a9188dec2858e43878f25"
-"checksum clippy 0.0.130 (registry+https://github.com/rust-lang/crates.io-index)" = "a55ee0eccfd801afcd8f1ebe19ae780e962923e32c3ff50763d4855f3c533ebf"
-"checksum clippy_lints 0.0.130 (registry+https://github.com/rust-lang/crates.io-index)" = "9fdbc3c4eddf13df636f173f8f2bad92f6e12c0749d43d932f8efa355065f096"
+"checksum clippy 0.0.131 (registry+https://github.com/rust-lang/crates.io-index)" = "5e985b3f2930c5d9431d6d4264caf4ec0e19a655e0a537e87fc5f8b1de94ae91"
+"checksum clippy_lints 0.0.131 (registry+https://github.com/rust-lang/crates.io-index)" = "2c6c8e8957ba5d2d7565355a3541cfdaed866f62c8c4a69e01fc6f2630c3f336"
 "checksum color_quant 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a475fc4af42d83d28adf72968d9bcfaf035a1a9381642d8e85d8a04957767b0d"
 "checksum conrod 0.51.1 (registry+https://github.com/rust-lang/crates.io-index)" = "60a5e9796ff598358b115f8118c9b94bd1cb1b67c34a7c0e8af0606eabab07f3"
 "checksum daggy 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d6a9b61ac11d223e884f431772d311087644e4710c1555d7db270cefb5fb9c69"
