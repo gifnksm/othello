@@ -23,7 +23,7 @@ impl<E> FindMove for Player<E>
     where E: Evaluate
 {
     fn find_move(&mut self, board: Board) -> Point {
-        assert!(board.turn() == Some(self.side));
+        assert_eq!(board.turn(), Some(self.side));
 
         let cands = board.move_candidates();
         let size = board.size();

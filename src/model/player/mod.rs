@@ -145,7 +145,7 @@ impl AiPlayer {
                     Box::new(AlphaBetaPlayer::new(side, power.to_alpha_beta_power(), evaluator))
                 }
             };
-            ai_main(side, player_tx, player_rx, board, &mut *player);
+            ai_main(side, &player_tx, &player_rx, board, &mut *player);
         });
 
         Some(AiPlayer {
@@ -174,8 +174,8 @@ pub trait FindMove {
 }
 
 pub fn ai_main(side: Side,
-               tx: Sender<Point>,
-               rx: Receiver<Message>,
+               tx: &Sender<Point>,
+               rx: &Receiver<Message>,
                mut board: Board,
                mut player: &mut FindMove) {
     loop {
