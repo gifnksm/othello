@@ -62,7 +62,8 @@ fn main() {
     let mut ui = UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
 
     let font_collection = FontCollection::from_bytes(ttf_noto_sans::REGULAR);
-    let _ = ui.fonts.insert(font_collection.into_font().expect("failed to into_font"));
+    let _ = ui.fonts
+        .insert(font_collection.into_font().expect("failed to into_font"));
 
     let mut text_vertex_data = vec![];
     let (mut glyph_cache, mut text_texture_cache) = {
@@ -92,9 +93,9 @@ fn main() {
         }
 
         let _ = event.update(|_| {
-            let mut ui = ui.set_widgets();
-            view::set_widgets(&mut ui, &mut ids, &mut app)
-        });
+                                 let mut ui = ui.set_widgets();
+                                 view::set_widgets(&mut ui, &mut ids, &mut app)
+                             });
 
         if let Some(args) = event.render_args() {
             gl_graphics.draw(args.viewport(),
@@ -114,7 +115,7 @@ fn main() {
                                           &text_vertex_data[..],
                                           offset,
                                           size)
-                        .expect("failed to update texture")
+                            .expect("failed to update texture")
                 };
                                  fn texture_from_image<T>(img: &T) -> &T {
                                      img

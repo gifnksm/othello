@@ -1,6 +1,6 @@
 use super::{Point, Size};
-use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not, Shl, ShlAssign,
-               Shr, ShrAssign};
+use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not, Shl,
+               ShlAssign, Shr, ShrAssign};
 
 #[derive(Copy, Clone, Debug)]
 pub struct BitBoard {

@@ -87,7 +87,14 @@ impl Widget for Indicator {
     }
 
     fn update(self, args: UpdateArgs<Self>) -> Self::Event {
-        let UpdateArgs { id, state, rect, mut ui, style, .. } = args;
+        let UpdateArgs {
+            id,
+            state,
+            rect,
+            mut ui,
+            style,
+            ..
+        } = args;
         let dim = rect.dim();
 
         BorderedRectangle::new(dim)

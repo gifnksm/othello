@@ -81,7 +81,14 @@ impl<'a> Widget for OthelloBoard<'a> {
     }
 
     fn update(self, args: UpdateArgs<Self>) -> Self::Event {
-        let UpdateArgs { id, state, rect, mut ui, style, .. } = args;
+        let UpdateArgs {
+            id,
+            state,
+            rect,
+            mut ui,
+            style,
+            ..
+        } = args;
         let (w, h) = rect.w_h();
 
         let size = self.board.size();

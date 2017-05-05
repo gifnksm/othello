@@ -30,7 +30,8 @@ impl<E> FindMove for Player<E>
         let num_cands = cands.num_bits();
         let child_num_eval = (self.num_eval as f64) / (num_cands as f64);
 
-        cands.points(size)
+        cands
+            .points(size)
             .map(move |pt| (pt, board.make_move(pt).unwrap()))
             .map(|(pt, board)| (pt, self.get_score(&board, child_num_eval)))
             .max_by_key(|e| e.1)

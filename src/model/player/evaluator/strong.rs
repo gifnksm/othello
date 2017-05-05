@@ -55,7 +55,9 @@ impl Evaluator {
         let edge_b_mask = weight_mask(BitBoard::from_point(Point(0, 3), size) |
                                       BitBoard::from_point(Point(3, 0), size),
                                       size);
-        // let edge_a_mask = weight_mask(BitBoard::from_point(Point(0, 2), size) | BitBoard::from_point(Point(2, 0), size), size);
+        // let edge_a_mask = weight_mask(BitBoard::from_point(Point(0, 2), size) |
+        //                               BitBoard::from_point(Point(2, 0), size),
+        //                               size);
         let edge_x_mask = weight_mask(BitBoard::from_point(Point(1, 1), size), size);
         let iedge_c_mask = weight_mask(BitBoard::from_point(Point(2, 1), size) |
                                        BitBoard::from_point(Point(1, 2), size),

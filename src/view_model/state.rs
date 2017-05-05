@@ -37,7 +37,10 @@ impl PlayState {
     }
 
     pub fn is_waiting_user_input(&self) -> bool {
-        self.board.turn().map(|side| self.ai_player(side).is_none()).unwrap_or(false)
+        self.board
+            .turn()
+            .map(|side| self.ai_player(side).is_none())
+            .unwrap_or(false)
     }
 
     pub fn board(&self) -> &Board {

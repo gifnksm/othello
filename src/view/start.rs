@@ -12,7 +12,10 @@ pub fn set_widgets(ui: &mut UiCell,
                    gc: &mut GameConfig,
                    vc: &ViewConfig)
                    -> Option<State> {
-    Canvas::new().color(vc.board_color).scroll_kids().set(ids.canvas, ui);
+    Canvas::new()
+        .color(vc.board_color)
+        .scroll_kids()
+        .set(ids.canvas, ui);
 
     Text::new("x")
         .w_h(30.0, 50.0)

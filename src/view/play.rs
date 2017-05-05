@@ -19,7 +19,10 @@ pub fn set_widgets(ui: &mut UiCell,
     let cols = gc.cols.to_value();
     let rows = gc.rows.to_value();
 
-    Canvas::new().color(vc.board_color).scroll_kids().set(ids.canvas, ui);
+    Canvas::new()
+        .color(vc.board_color)
+        .scroll_kids()
+        .set(ids.canvas, ui);
 
     let board_width = vc.cell_size * (cols as f64);
     let indicator_width = vc.cell_size + vc.indicator_text_width;
@@ -53,14 +56,15 @@ pub fn set_widgets(ui: &mut UiCell,
         }
     }
 
-    let pairs = &[(Side::Black, ids.black_indicator), (Side::White, ids.white_indicator)];
+    let pairs = &[(Side::Black, ids.black_indicator),
+                  (Side::White, ids.white_indicator)];
     for &(side, id) in pairs {
         Indicator::new(side, play.player_kind(side), play.board().num_disk(side))
             .and(|build| if id == ids.black_indicator {
-                build.right_from(ids.board, vc.board_margin)
-            } else {
-                build.down_from(ids.black_indicator, 10.0)
-            })
+                     build.right_from(ids.board, vc.board_margin)
+                 } else {
+                     build.down_from(ids.black_indicator, 10.0)
+                 })
             .w(vc.indicator_width)
             .background_color(vc.board_color)
             .border(vc.border_width)
@@ -78,10 +82,10 @@ pub fn set_widgets(ui: &mut UiCell,
         .align_left_of(ids.black_indicator)
         .align_bottom_of(ids.board)
         .and(|button| if play.board().turn().is_some() {
-            button.label("stop")
-        } else {
-            button.label("return")
-        })
+                 button.label("stop")
+             } else {
+                 button.label("return")
+             })
         .set(ids.stop_button, ui)
         .was_clicked();
 

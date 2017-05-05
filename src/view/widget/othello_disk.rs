@@ -100,7 +100,14 @@ impl Widget for OthelloDisk {
     }
 
     fn update(self, args: UpdateArgs<Self>) -> Self::Event {
-        let UpdateArgs { id, state, rect, mut ui, style, .. } = args;
+        let UpdateArgs {
+            id,
+            state,
+            rect,
+            mut ui,
+            style,
+            ..
+        } = args;
         let dim = rect.dim();
         let radius_ratio = style.radius_ratio(ui.theme());
         let radius = rect.w() * radius_ratio;
@@ -108,16 +115,17 @@ impl Widget for OthelloDisk {
             let input = ui.widget_input(id);
             let clicked = input.clicks().left().next().is_some();
 
-            let interaction = input.mouse()
+            let interaction = input
+                .mouse()
                 .and_then(|mouse| if is_over_circ([0.0, 0.0], mouse.rel_xy(), radius) {
-                    if mouse.buttons.left().is_down() {
-                        Some(Interaction::Clicked)
-                    } else {
-                        Some(Interaction::Highlighted)
-                    }
-                } else {
-                    None
-                })
+                              if mouse.buttons.left().is_down() {
+                                  Some(Interaction::Clicked)
+                              } else {
+                                  Some(Interaction::Highlighted)
+                              }
+                          } else {
+                              None
+                          })
                 .unwrap_or(Interaction::Normal);
 
             (interaction, clicked)

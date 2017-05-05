@@ -149,10 +149,10 @@ impl AiPlayer {
         });
 
         Some(AiPlayer {
-            handle: handle,
-            receiver: host_rx,
-            sender: host_tx,
-        })
+                 handle: handle,
+                 receiver: host_rx,
+                 sender: host_tx,
+             })
     }
 
     pub fn finish(self) {
