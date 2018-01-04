@@ -19,7 +19,9 @@ impl BitBoard {
         if num_cell == BIT_BOARD_BITS {
             BitBoard { bits: !0 }
         } else {
-            BitBoard { bits: (1 << num_cell) - 1 }
+            BitBoard {
+                bits: (1 << num_cell) - 1,
+            }
         }
     }
 

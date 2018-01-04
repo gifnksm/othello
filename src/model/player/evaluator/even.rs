@@ -19,6 +19,8 @@ impl Evaluate for Evaluator {
 
 impl Evaluator {
     pub fn new(size: Size) -> Self {
-        Evaluator { strong: StrongEvaluator::new(size) }
+        Evaluator {
+            strong: StrongEvaluator::new(size),
+        }
     }
 }

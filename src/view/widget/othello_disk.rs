@@ -92,7 +92,9 @@ impl Widget for OthelloDisk {
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> State {
-        State { ids: Ids::new(id_gen) }
+        State {
+            ids: Ids::new(id_gen),
+        }
     }
 
     fn style(&self) -> Style {
@@ -117,15 +119,17 @@ impl Widget for OthelloDisk {
 
             let interaction = input
                 .mouse()
-                .and_then(|mouse| if is_over_circ([0.0, 0.0], mouse.rel_xy(), radius) {
-                              if mouse.buttons.left().is_down() {
-                                  Some(Interaction::Clicked)
-                              } else {
-                                  Some(Interaction::Highlighted)
-                              }
-                          } else {
-                              None
-                          })
+                .and_then(
+                    |mouse| if is_over_circ([0.0, 0.0], mouse.rel_xy(), radius) {
+                        if mouse.buttons.left().is_down() {
+                            Some(Interaction::Clicked)
+                        } else {
+                            Some(Interaction::Highlighted)
+                        }
+                    } else {
+                        None
+                    },
+                )
                 .unwrap_or(Interaction::Normal);
 
             (interaction, clicked)

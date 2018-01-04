@@ -1,5 +1,4 @@
 use conrod::UiCell;
-
 use view_model::{App, State};
 
 mod start;

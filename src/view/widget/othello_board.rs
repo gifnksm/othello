@@ -73,7 +73,9 @@ impl<'a> Widget for OthelloBoard<'a> {
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> State {
-        State { ids: Ids::new(id_gen) }
+        State {
+            ids: Ids::new(id_gen),
+        }
     }
 
     fn style(&self) -> Style {
@@ -127,15 +129,19 @@ impl<'a> Widget for OthelloBoard<'a> {
             let cell_width = w / (size.0 as f64);
             let cell_height = h / (size.1 as f64);
             let (sx, sy) = (size.0 as f64, size.1 as f64);
-            let pairs = &[(state.ids.dot_ul, (2.0, 2.0)),
-                          (state.ids.dot_ur, (2.0, sy - 2.0)),
-                          (state.ids.dot_dl, (sx - 2.0, 2.0)),
-                          (state.ids.dot_dr, (sx - 2.0, sy - 2.0))];
+            let pairs = &[
+                (state.ids.dot_ul, (2.0, 2.0)),
+                (state.ids.dot_ur, (2.0, sy - 2.0)),
+                (state.ids.dot_dl, (sx - 2.0, 2.0)),
+                (state.ids.dot_dr, (sx - 2.0, sy - 2.0)),
+            ];
             for &(id, (dx, dy)) in pairs {
                 Circle::fill(style.dot_radius(ui.theme()))
-                    .x_y_relative_to(state.ids.matrix,
-                                     -w / 2.0 + cell_width * dx,
-                                     -h / 2.0 + cell_height * dy)
+                    .x_y_relative_to(
+                        state.ids.matrix,
+                        -w / 2.0 + cell_width * dx,
+                        -h / 2.0 + cell_height * dy,
+                    )
                     .color(style.border_color(ui.theme()))
                     .set(id, ui);
             }

@@ -9,15 +9,13 @@
 #![warn(unused_import_braces)]
 #![warn(unused_qualifications)]
 #![warn(unused_results)]
-
-#![cfg_attr(feature="nightly", feature(plugin))]
-#![cfg_attr(feature="nightly", plugin(clippy))]
-#![cfg_attr(feature="nightly", warn(mut_mut))]
-#![cfg_attr(feature="nightly", warn(string_add))]
-#![cfg_attr(feature="nightly", warn(string_add_assign))]
-
-#![cfg_attr(feature="nightly", feature(windows_subsystem))]
-#![cfg_attr(feature="nightly", windows_subsystem="windows")]
+#![cfg_attr(feature = "nightly", feature(plugin))]
+#![cfg_attr(feature = "nightly", plugin(clippy))]
+#![cfg_attr(feature = "nightly", warn(mut_mut))]
+#![cfg_attr(feature = "nightly", warn(string_add))]
+#![cfg_attr(feature = "nightly", warn(string_add_assign))]
+#![cfg_attr(feature = "nightly", feature(windows_subsystem))]
+#![cfg_attr(feature = "nightly", windows_subsystem = "windows")]
 
 #[macro_use]
 extern crate conrod;
@@ -93,43 +91,46 @@ fn main() {
         }
 
         let _ = event.update(|_| {
-                                 let mut ui = ui.set_widgets();
-                                 view::set_widgets(&mut ui, &mut ids, &mut app)
-                             });
+            let mut ui = ui.set_widgets();
+            view::set_widgets(&mut ui, &mut ids, &mut app)
+        });
 
         if let Some(args) = event.render_args() {
-            gl_graphics.draw(args.viewport(),
-                             |ctx, g2d| if let Some(primitives) = ui.draw_if_changed() {
-                                 let cache_queued_glyphs = |_graphics: &mut GlGraphics,
-                                                            cache: &mut Texture,
-                                                            rect: Rect<u32>,
-                                                            data: &[u8]| {
-                    let offset = [rect.min.x, rect.min.y];
-                    let size = [rect.width(), rect.height()];
-                    let format = Format::Rgba8;
-                    text_vertex_data.clear();
-                    text_vertex_data.extend(data.iter().flat_map(|&b| vec![255, 255, 255, b]));
-                    UpdateTexture::update(cache,
-                                          &mut (),
-                                          format,
-                                          &text_vertex_data[..],
-                                          offset,
-                                          size)
-                            .expect("failed to update texture")
-                };
-                                 fn texture_from_image<T>(img: &T) -> &T {
-                                     img
-                                 };
-                                 draw::primitives(primitives,
-                                                  ctx,
-                                                  g2d,
-                                                  &mut text_texture_cache,
-                                                  &mut glyph_cache,
-                                                  &image_map,
-                                                  cache_queued_glyphs,
-                                                  texture_from_image);
-
-                             });
+            gl_graphics.draw(args.viewport(), |ctx, g2d| {
+                if let Some(primitives) = ui.draw_if_changed() {
+                    let cache_queued_glyphs = |_graphics: &mut GlGraphics,
+                                               cache: &mut Texture,
+                                               rect: Rect<u32>,
+                                               data: &[u8]| {
+                        let offset = [rect.min.x, rect.min.y];
+                        let size = [rect.width(), rect.height()];
+                        let format = Format::Rgba8;
+                        text_vertex_data.clear();
+                        text_vertex_data.extend(data.iter().flat_map(|&b| vec![255, 255, 255, b]));
+                        UpdateTexture::update(
+                            cache,
+                            &mut (),
+                            format,
+                            &text_vertex_data[..],
+                            offset,
+                            size,
+                        ).expect("failed to update texture")
+                    };
+                    fn texture_from_image<T>(img: &T) -> &T {
+                        img
+                    };
+                    draw::primitives(
+                        primitives,
+                        ctx,
+                        g2d,
+                        &mut text_texture_cache,
+                        &mut glyph_cache,
+                        &image_map,
+                        cache_queued_glyphs,
+                        texture_from_image,
+                    );
+                }
+            });
         }
     }
 }

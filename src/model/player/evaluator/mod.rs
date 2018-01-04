@@ -45,14 +45,13 @@ impl PartialOrd for Score {
 impl Ord for Score {
     fn cmp(&self, other: &Score) -> Ordering {
         match (*self, *other) {
-            (Score::NegInfinity, Score::NegInfinity) |
-            (Score::Infinity, Score::Infinity) => Ordering::Equal,
+            (Score::NegInfinity, Score::NegInfinity) | (Score::Infinity, Score::Infinity) => {
+                Ordering::Equal
+            }
 
-            (Score::NegInfinity, _) |
-            (_, Score::Infinity) => Ordering::Less,
+            (Score::NegInfinity, _) | (_, Score::Infinity) => Ordering::Less,
 
-            (_, Score::NegInfinity) |
-            (Score::Infinity, _) => Ordering::Greater,
+            (_, Score::NegInfinity) | (Score::Infinity, _) => Ordering::Greater,
 
             (Score::Running(s), Score::Running(o)) => s.partial_cmp(&o).unwrap(),
             (Score::Ended(s), Score::Ended(o)) => s.cmp(&o),

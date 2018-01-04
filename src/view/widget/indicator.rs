@@ -79,7 +79,9 @@ impl Widget for Indicator {
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> State {
-        State { ids: Ids::new(id_gen) }
+        State {
+            ids: Ids::new(id_gen),
+        }
     }
 
     fn style(&self) -> Style {

@@ -8,7 +8,9 @@ pub struct Player {
 
 impl Player {
     pub fn new() -> Self {
-        Player { rng: rand::thread_rng() }
+        Player {
+            rng: rand::thread_rng(),
+        }
     }
 }
 
