@@ -98,24 +98,26 @@ fn main() {
         if let Some(args) = event.render_args() {
             gl_graphics.draw(args.viewport(), |ctx, g2d| {
                 if let Some(primitives) = ui.draw_if_changed() {
-                    let cache_queued_glyphs = |_graphics: &mut GlGraphics,
-                                               cache: &mut Texture,
-                                               rect: Rect<u32>,
-                                               data: &[u8]| {
-                        let offset = [rect.min.x, rect.min.y];
-                        let size = [rect.width(), rect.height()];
-                        let format = Format::Rgba8;
-                        text_vertex_data.clear();
-                        text_vertex_data.extend(data.iter().flat_map(|&b| vec![255, 255, 255, b]));
-                        UpdateTexture::update(
-                            cache,
-                            &mut (),
-                            format,
-                            &text_vertex_data[..],
-                            offset,
-                            size,
-                        ).expect("failed to update texture")
-                    };
+                    let cache_queued_glyphs =
+                        |_graphics: &mut GlGraphics,
+                         cache: &mut Texture,
+                         rect: Rect<u32>,
+                         data: &[u8]| {
+                            let offset = [rect.min.x, rect.min.y];
+                            let size = [rect.width(), rect.height()];
+                            let format = Format::Rgba8;
+                            text_vertex_data.clear();
+                            text_vertex_data
+                                .extend(data.iter().flat_map(|&b| vec![255, 255, 255, b]));
+                            UpdateTexture::update(
+                                cache,
+                                &mut (),
+                                format,
+                                &text_vertex_data[..],
+                                offset,
+                                size,
+                            ).expect("failed to update texture")
+                        };
                     fn texture_from_image<T>(img: &T) -> &T {
                         img
                     };

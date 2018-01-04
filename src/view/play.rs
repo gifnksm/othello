@@ -63,10 +63,12 @@ pub fn set_widgets(
     ];
     for &(side, id) in pairs {
         Indicator::new(side, play.player_kind(side), play.board().num_disk(side))
-            .and(|build| if id == ids.black_indicator {
-                build.right_from(ids.board, vc.board_margin)
-            } else {
-                build.down_from(ids.black_indicator, 10.0)
+            .and(|build| {
+                if id == ids.black_indicator {
+                    build.right_from(ids.board, vc.board_margin)
+                } else {
+                    build.down_from(ids.black_indicator, 10.0)
+                }
             })
             .w(vc.indicator_width)
             .background_color(vc.board_color)
@@ -84,10 +86,12 @@ pub fn set_widgets(
         .w_h(vc.indicator_width, 50.0)
         .align_left_of(ids.black_indicator)
         .align_bottom_of(ids.board)
-        .and(|button| if play.board().turn().is_some() {
-            button.label("stop")
-        } else {
-            button.label("return")
+        .and(|button| {
+            if play.board().turn().is_some() {
+                button.label("stop")
+            } else {
+                button.label("return")
+            }
         })
         .set(ids.stop_button, ui)
         .was_clicked();

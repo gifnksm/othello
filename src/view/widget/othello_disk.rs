@@ -119,8 +119,8 @@ impl Widget for OthelloDisk {
 
             let interaction = input
                 .mouse()
-                .and_then(
-                    |mouse| if is_over_circ([0.0, 0.0], mouse.rel_xy(), radius) {
+                .and_then(|mouse| {
+                    if is_over_circ([0.0, 0.0], mouse.rel_xy(), radius) {
                         if mouse.buttons.left().is_down() {
                             Some(Interaction::Clicked)
                         } else {
@@ -128,8 +128,8 @@ impl Widget for OthelloDisk {
                         }
                     } else {
                         None
-                    },
-                )
+                    }
+                })
                 .unwrap_or(Interaction::Normal);
 
             (interaction, clicked)

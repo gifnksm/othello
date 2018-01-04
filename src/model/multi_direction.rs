@@ -49,14 +49,7 @@ impl MdOffset {
         let ul_mask = u_mask & l_mask;
 
         [
-            r_mask,
-            d_mask,
-            dl_mask,
-            dr_mask,
-            l_mask,
-            u_mask,
-            ur_mask,
-            ul_mask,
+            r_mask, d_mask, dl_mask, dr_mask, l_mask, u_mask, ur_mask, ul_mask
         ]
     }
 }
