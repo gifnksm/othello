@@ -1,7 +1,7 @@
 use super::OthelloDisk;
 use conrod::{Borderable, Positionable, Scalar, Sizeable, Widget};
 use conrod::color::{self, Color, Colorable};
-use conrod::widget::{self, Circle, CommonBuilder, Matrix, UpdateArgs};
+use conrod::widget::{self, Circle, Common, CommonBuilder, Matrix, UpdateArgs};
 use model::{Board, Point};
 
 #[derive(Debug)]
@@ -12,16 +12,15 @@ pub struct OthelloBoard<'a> {
     show_candidates: bool,
 }
 
-widget_style!{
-    style Style {
-        - white_color: Color { color::WHITE }
-        - black_color: Color { color::BLACK }
-        - background_color: Color { theme.background_color }
-        - border: Scalar { theme.border_width }
-        - border_color: Color { theme.border_color }
-        - radius_ratio: Scalar { 0.5 }
-        - dot_radius: Scalar { 6.0 }
-    }
+#[derive(Copy, Clone, Debug, Default, PartialEq, WidgetStyle)]
+pub struct Style {
+    #[conrod(default = "color::WHITE")] pub white_color: Option<Color>,
+    #[conrod(default = "color::BLACK")] pub black_color: Option<Color>,
+    #[conrod(default = "theme.background_color")] pub background_color: Option<Color>,
+    #[conrod(default = "theme.border_width")] pub border: Option<Scalar>,
+    #[conrod(default = "theme.border_color")] pub border_color: Option<Color>,
+    #[conrod(default = "0.5")] pub radius_ratio: Option<Scalar>,
+    #[conrod(default = "6.0")] pub dot_radius: Option<Scalar>,
 }
 
 widget_ids! {
@@ -43,8 +42,8 @@ pub struct State {
 impl<'a> OthelloBoard<'a> {
     pub fn new(board: &'a Board, show_candidates: bool) -> Self {
         OthelloBoard {
-            common: CommonBuilder::new(),
-            style: Style::new(),
+            common: CommonBuilder::default(),
+            style: Style::default(),
             board: board,
             show_candidates: show_candidates,
         }
@@ -59,11 +58,7 @@ impl<'a> OthelloBoard<'a> {
     }
 }
 
-impl<'a> Widget for OthelloBoard<'a> {
-    type State = State;
-    type Style = Style;
-    type Event = Option<Point>;
-
+impl<'a> Common for OthelloBoard<'a> {
     fn common(&self) -> &CommonBuilder {
         &self.common
     }
@@ -71,9 +66,17 @@ impl<'a> Widget for OthelloBoard<'a> {
     fn common_mut(&mut self) -> &mut CommonBuilder {
         &mut self.common
     }
+}
+
+impl<'a> Widget for OthelloBoard<'a> {
+    type State = State;
+    type Style = Style;
+    type Event = Option<Point>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> State {
-        State { ids: Ids::new(id_gen) }
+        State {
+            ids: Ids::new(id_gen),
+        }
     }
 
     fn style(&self) -> Style {
@@ -85,7 +88,7 @@ impl<'a> Widget for OthelloBoard<'a> {
             id,
             state,
             rect,
-            mut ui,
+            ui,
             style,
             ..
         } = args;
@@ -127,15 +130,19 @@ impl<'a> Widget for OthelloBoard<'a> {
             let cell_width = w / (size.0 as f64);
             let cell_height = h / (size.1 as f64);
             let (sx, sy) = (size.0 as f64, size.1 as f64);
-            let pairs = &[(state.ids.dot_ul, (2.0, 2.0)),
-                          (state.ids.dot_ur, (2.0, sy - 2.0)),
-                          (state.ids.dot_dl, (sx - 2.0, 2.0)),
-                          (state.ids.dot_dr, (sx - 2.0, sy - 2.0))];
+            let pairs = &[
+                (state.ids.dot_ul, (2.0, 2.0)),
+                (state.ids.dot_ur, (2.0, sy - 2.0)),
+                (state.ids.dot_dl, (sx - 2.0, 2.0)),
+                (state.ids.dot_dr, (sx - 2.0, sy - 2.0)),
+            ];
             for &(id, (dx, dy)) in pairs {
                 Circle::fill(style.dot_radius(ui.theme()))
-                    .x_y_relative_to(state.ids.matrix,
-                                     -w / 2.0 + cell_width * dx,
-                                     -h / 2.0 + cell_height * dy)
+                    .x_y_relative_to(
+                        state.ids.matrix,
+                        -w / 2.0 + cell_width * dx,
+                        -h / 2.0 + cell_height * dy,
+                    )
                     .color(style.border_color(ui.theme()))
                     .set(id, ui);
             }

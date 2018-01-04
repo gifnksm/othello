@@ -48,7 +48,9 @@ impl MdOffset {
         let ur_mask = u_mask & r_mask;
         let ul_mask = u_mask & l_mask;
 
-        [r_mask, d_mask, dl_mask, dr_mask, l_mask, u_mask, ur_mask, ul_mask]
+        [
+            r_mask, d_mask, dl_mask, dr_mask, l_mask, u_mask, ur_mask, ul_mask
+        ]
     }
 }
 
@@ -64,20 +66,22 @@ impl MdMask {
 
     pub fn shift(self, offset: MdOffset) -> Self {
         MdMask {
-            masks: [(self.masks[0] & offset.masks[0]) << offset.offs[0],
-                    (self.masks[1] & offset.masks[1]) << offset.offs[1],
-                    (self.masks[2] & offset.masks[2]) << offset.offs[2],
-                    (self.masks[3] & offset.masks[3]) << offset.offs[3],
-                    (self.masks[4] & offset.masks[4]) >> offset.offs[0],
-                    (self.masks[5] & offset.masks[5]) >> offset.offs[1],
-                    (self.masks[6] & offset.masks[6]) >> offset.offs[2],
-                    (self.masks[7] & offset.masks[7]) >> offset.offs[3]],
+            masks: [
+                (self.masks[0] & offset.masks[0]) << offset.offs[0],
+                (self.masks[1] & offset.masks[1]) << offset.offs[1],
+                (self.masks[2] & offset.masks[2]) << offset.offs[2],
+                (self.masks[3] & offset.masks[3]) << offset.offs[3],
+                (self.masks[4] & offset.masks[4]) >> offset.offs[0],
+                (self.masks[5] & offset.masks[5]) >> offset.offs[1],
+                (self.masks[6] & offset.masks[6]) >> offset.offs[2],
+                (self.masks[7] & offset.masks[7]) >> offset.offs[3],
+            ],
         }
     }
 
     pub fn or_all(self) -> BitBoard {
-        self.masks[0] | self.masks[1] | self.masks[2] | self.masks[3] | self.masks[4] |
-        self.masks[5] | self.masks[6] | self.masks[7]
+        self.masks[0] | self.masks[1] | self.masks[2] | self.masks[3] | self.masks[4]
+            | self.masks[5] | self.masks[6] | self.masks[7]
     }
 
     pub fn iter_mut(&mut self) -> slice::IterMut<BitBoard> {
@@ -90,14 +94,16 @@ impl BitAnd for MdMask {
 
     fn bitand(self, rhs: Self) -> Self {
         MdMask {
-            masks: [self.masks[0] & rhs.masks[0],
-                    self.masks[1] & rhs.masks[1],
-                    self.masks[2] & rhs.masks[2],
-                    self.masks[3] & rhs.masks[3],
-                    self.masks[4] & rhs.masks[4],
-                    self.masks[5] & rhs.masks[5],
-                    self.masks[6] & rhs.masks[6],
-                    self.masks[7] & rhs.masks[7]],
+            masks: [
+                self.masks[0] & rhs.masks[0],
+                self.masks[1] & rhs.masks[1],
+                self.masks[2] & rhs.masks[2],
+                self.masks[3] & rhs.masks[3],
+                self.masks[4] & rhs.masks[4],
+                self.masks[5] & rhs.masks[5],
+                self.masks[6] & rhs.masks[6],
+                self.masks[7] & rhs.masks[7],
+            ],
         }
     }
 }

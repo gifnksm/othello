@@ -1,4 +1,4 @@
-use super::{BitBoard, MAX_SIZE, MIN_SIZE, Point, Side, Size};
+use super::{BitBoard, Point, Side, Size, MAX_SIZE, MIN_SIZE};
 use super::multi_direction::{MdMask, MdOffset};
 use std::cmp;
 
@@ -22,10 +22,10 @@ impl Board {
             size: size,
             turn: Some(Side::Black),
             offset: MdOffset::from_size(size),
-            black_cells: BitBoard::from_point(Point(x + 1, y), size) |
-                         BitBoard::from_point(Point(x, y + 1), size),
-            white_cells: BitBoard::from_point(Point(x, y), size) |
-                         BitBoard::from_point(Point(x + 1, y + 1), size),
+            black_cells: BitBoard::from_point(Point(x + 1, y), size)
+                | BitBoard::from_point(Point(x, y + 1), size),
+            white_cells: BitBoard::from_point(Point(x, y), size)
+                | BitBoard::from_point(Point(x + 1, y + 1), size),
             move_cand: BitBoard::empty(),
         };
         board.move_cand = board.compute_move_cand();
@@ -123,8 +123,10 @@ impl Board {
 
         let mut mask = MdMask::new(flip);
         let mut flip_cand = MdMask::new(BitBoard::empty());
-        let cnt = cmp::max(cmp::max(pt.0, MAX_SIZE - pt.0 - 1),
-                           cmp::max(pt.1, MAX_SIZE - pt.1 - 1));
+        let cnt = cmp::max(
+            cmp::max(pt.0, MAX_SIZE - pt.0 - 1),
+            cmp::max(pt.1, MAX_SIZE - pt.1 - 1),
+        );
         for _ in 0..cnt {
             mask = mask.shift(self.offset);
             for (mask, cand) in mask.iter_mut().zip(flip_cand.iter_mut()) {

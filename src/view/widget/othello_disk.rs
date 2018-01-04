@@ -1,6 +1,6 @@
 use conrod::{Borderable, Point, Positionable, Scalar, Widget};
 use conrod::color::{self, Color, Colorable};
-use conrod::widget::{self, BorderedRectangle, Circle, CommonBuilder, UpdateArgs};
+use conrod::widget::{self, BorderedRectangle, Circle, Common, CommonBuilder, UpdateArgs};
 use model::Side;
 use vecmath;
 
@@ -12,15 +12,14 @@ pub struct OthelloDisk {
     flow_disk: Option<Side>,
 }
 
-widget_style!{
-    style Style {
-        - white_color: Color { color::WHITE }
-        - black_color: Color { color::BLACK }
-        - background_color: Color { theme.background_color }
-        - border: Scalar { theme.border_width }
-        - border_color: Color { theme.border_color }
-        - radius_ratio: Scalar { 0.5 }
-    }
+#[derive(Copy, Clone, Debug, Default, PartialEq, WidgetStyle)]
+pub struct Style {
+    #[conrod(default = "color::WHITE")] pub white_color: Option<Color>,
+    #[conrod(default = "color::BLACK")] pub black_color: Option<Color>,
+    #[conrod(default = "theme.background_color")] pub background_color: Option<Color>,
+    #[conrod(default = "theme.border_width")] pub border: Option<Scalar>,
+    #[conrod(default = "theme.border_color")] pub border_color: Option<Color>,
+    #[conrod(default = "0.5")] pub radius_ratio: Option<Scalar>,
 }
 
 widget_ids! {
@@ -44,8 +43,8 @@ fn is_over_circ(circ_center: Point, mouse_point: Point, radius: Scalar) -> bool 
 impl OthelloDisk {
     pub fn new() -> Self {
         OthelloDisk {
-            common: CommonBuilder::new(),
-            style: Style::new(),
+            common: CommonBuilder::default(),
+            style: Style::default(),
             disk: None,
             flow_disk: None,
         }
@@ -78,11 +77,7 @@ impl Interaction {
     }
 }
 
-impl Widget for OthelloDisk {
-    type State = State;
-    type Style = Style;
-    type Event = bool;
-
+impl Common for OthelloDisk {
     fn common(&self) -> &CommonBuilder {
         &self.common
     }
@@ -90,9 +85,17 @@ impl Widget for OthelloDisk {
     fn common_mut(&mut self) -> &mut CommonBuilder {
         &mut self.common
     }
+}
+
+impl Widget for OthelloDisk {
+    type State = State;
+    type Style = Style;
+    type Event = bool;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> State {
-        State { ids: Ids::new(id_gen) }
+        State {
+            ids: Ids::new(id_gen),
+        }
     }
 
     fn style(&self) -> Style {
@@ -117,15 +120,17 @@ impl Widget for OthelloDisk {
 
             let interaction = input
                 .mouse()
-                .and_then(|mouse| if is_over_circ([0.0, 0.0], mouse.rel_xy(), radius) {
-                              if mouse.buttons.left().is_down() {
-                                  Some(Interaction::Clicked)
-                              } else {
-                                  Some(Interaction::Highlighted)
-                              }
-                          } else {
-                              None
-                          })
+                .and_then(|mouse| {
+                    if is_over_circ([0.0, 0.0], mouse.rel_xy(), radius) {
+                        if mouse.buttons.left().is_down() {
+                            Some(Interaction::Clicked)
+                        } else {
+                            Some(Interaction::Highlighted)
+                        }
+                    } else {
+                        None
+                    }
+                })
                 .unwrap_or(Interaction::Normal);
 
             (interaction, clicked)

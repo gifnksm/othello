@@ -1,4 +1,4 @@
-use super::{Evaluate, FindMove, MAX_SCORE, MIN_SCORE, Score};
+use super::{Evaluate, FindMove, Score, MAX_SCORE, MIN_SCORE};
 use model::{Board, Point, Side};
 use std::{cmp, u32};
 
@@ -20,7 +20,8 @@ impl<E> Player<E> {
 }
 
 impl<E> FindMove for Player<E>
-    where E: Evaluate
+where
+    E: Evaluate,
 {
     fn find_move(&mut self, board: Board) -> Point {
         assert_eq!(board.turn(), Some(self.side));
@@ -41,7 +42,8 @@ impl<E> FindMove for Player<E>
 }
 
 impl<E> Player<E>
-    where E: Evaluate
+where
+    E: Evaluate,
 {
     fn get_score(&self, board: &Board, num_eval: f64) -> Score {
         self.alphabeta(board, num_eval, MIN_SCORE, MAX_SCORE)

@@ -3,15 +3,15 @@ use conrod::{Labelable, Sizeable, UiCell, Widget};
 use conrod::Positionable;
 use conrod::color::Colorable;
 use conrod::widget::{Button, Canvas, DropDownList, Text};
-
 use model::{PlayerKind, Size};
 use view_model::{BoardSize, GameConfig, PlayState, State, ViewConfig};
 
-pub fn set_widgets(ui: &mut UiCell,
-                   ids: &mut Ids,
-                   gc: &mut GameConfig,
-                   vc: &ViewConfig)
-                   -> Option<State> {
+pub fn set_widgets(
+    ui: &mut UiCell,
+    ids: &mut Ids,
+    gc: &mut GameConfig,
+    vc: &ViewConfig,
+) -> Option<State> {
     Canvas::new()
         .color(vc.board_color)
         .scroll_kids()
@@ -67,10 +67,11 @@ pub fn set_widgets(ui: &mut UiCell,
         .was_clicked();
 
     if start_clicked {
-        let new_state = State::Play(Box::new(PlayState::new(Size(gc.cols.to_value(),
-                                                                 gc.rows.to_value()),
-                                                            gc.black_player,
-                                                            gc.white_player)));
+        let new_state = State::Play(Box::new(PlayState::new(
+            Size(gc.cols.to_value(), gc.rows.to_value()),
+            gc.black_player,
+            gc.white_player,
+        )));
         Some(new_state)
     } else {
         None

@@ -1,6 +1,6 @@
 use self::alpha_beta::Player as AlphaBetaPlayer;
-pub use self::evaluator::{Evaluate, EvenEvaluator, MAX_SCORE, MIN_SCORE, Score, StrongEvaluator,
-                          WeakEvaluator};
+pub use self::evaluator::{Evaluate, EvenEvaluator, Score, StrongEvaluator, WeakEvaluator,
+                          MAX_SCORE, MIN_SCORE};
 use self::random::Player as RandomPlayer;
 use model::{Board, Point, Side};
 use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
@@ -56,9 +56,9 @@ impl Default for PlayerKind {
 
 impl AsRef<str> for PlayerKind {
     fn as_ref(&self) -> &str {
-        use self::PlayerKind::*;
         use self::AiKind::*;
         use self::AiPower::*;
+        use self::PlayerKind::*;
         match *self {
             Human => "Human",
             Ai(Random) => "AI: random",
@@ -77,26 +77,28 @@ impl AsRef<str> for PlayerKind {
 
 impl PlayerKind {
     pub fn all_values() -> [Self; 11] {
-        use self::PlayerKind::*;
         use self::AiKind::*;
         use self::AiPower::*;
-        [Human,
-         Ai(Random),
-         Ai(AlphaBetaStrong(Small)),
-         Ai(AlphaBetaStrong(Medium)),
-         Ai(AlphaBetaStrong(Large)),
-         Ai(AlphaBetaEven(Small)),
-         Ai(AlphaBetaEven(Medium)),
-         Ai(AlphaBetaEven(Large)),
-         Ai(AlphaBetaWeak(Small)),
-         Ai(AlphaBetaWeak(Medium)),
-         Ai(AlphaBetaWeak(Large))]
+        use self::PlayerKind::*;
+        [
+            Human,
+            Ai(Random),
+            Ai(AlphaBetaStrong(Small)),
+            Ai(AlphaBetaStrong(Medium)),
+            Ai(AlphaBetaStrong(Large)),
+            Ai(AlphaBetaEven(Small)),
+            Ai(AlphaBetaEven(Medium)),
+            Ai(AlphaBetaEven(Large)),
+            Ai(AlphaBetaWeak(Small)),
+            Ai(AlphaBetaWeak(Medium)),
+            Ai(AlphaBetaWeak(Large)),
+        ]
     }
 
     pub fn to_index(&self) -> usize {
-        use self::PlayerKind::*;
         use self::AiKind::*;
         use self::AiPower::*;
+        use self::PlayerKind::*;
         match *self {
             Human => 0,
             Ai(Random) => 1,
@@ -134,25 +136,37 @@ impl AiPlayer {
                 AiKind::Random => Box::new(RandomPlayer::new()),
                 AiKind::AlphaBetaStrong(power) => {
                     let evaluator = StrongEvaluator::new(board.size());
-                    Box::new(AlphaBetaPlayer::new(side, power.to_alpha_beta_power(), evaluator))
+                    Box::new(AlphaBetaPlayer::new(
+                        side,
+                        power.to_alpha_beta_power(),
+                        evaluator,
+                    ))
                 }
                 AiKind::AlphaBetaEven(power) => {
                     let evaluator = EvenEvaluator::new(board.size());
-                    Box::new(AlphaBetaPlayer::new(side, power.to_alpha_beta_power(), evaluator))
+                    Box::new(AlphaBetaPlayer::new(
+                        side,
+                        power.to_alpha_beta_power(),
+                        evaluator,
+                    ))
                 }
                 AiKind::AlphaBetaWeak(power) => {
                     let evaluator = WeakEvaluator::new(board.size());
-                    Box::new(AlphaBetaPlayer::new(side, power.to_alpha_beta_power(), evaluator))
+                    Box::new(AlphaBetaPlayer::new(
+                        side,
+                        power.to_alpha_beta_power(),
+                        evaluator,
+                    ))
                 }
             };
             ai_main(side, &player_tx, &player_rx, board, &mut *player);
         });
 
         Some(AiPlayer {
-                 handle: handle,
-                 receiver: host_rx,
-                 sender: host_tx,
-             })
+            handle: handle,
+            receiver: host_rx,
+            sender: host_tx,
+        })
     }
 
     pub fn finish(self) {
@@ -173,20 +187,20 @@ pub trait FindMove {
     fn find_move(&mut self, board: Board) -> Point;
 }
 
-pub fn ai_main(side: Side,
-               tx: &Sender<Point>,
-               rx: &Receiver<Message>,
-               mut board: Board,
-               mut player: &mut FindMove) {
+pub fn ai_main(
+    side: Side,
+    tx: &Sender<Point>,
+    rx: &Receiver<Message>,
+    mut board: Board,
+    player: &mut FindMove,
+) {
     loop {
         match board.turn() {
-            None => {
-                match rx.recv() {
-                    Ok(Message::Exit) => break,
-                    Ok(msg) => panic!("{:?}", msg),
-                    Err(e) => panic!("error: {}", e),
-                }
-            }
+            None => match rx.recv() {
+                Ok(Message::Exit) => break,
+                Ok(msg) => panic!("{:?}", msg),
+                Err(e) => panic!("error: {}", e),
+            },
             Some(turn) => {
                 if turn != side {
                     match rx.recv() {

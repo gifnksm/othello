@@ -8,12 +8,13 @@ use conrod::widget::line::Style as LineStyle;
 use model::Side;
 use view_model::{GameConfig, PlayState, State, ViewConfig};
 
-pub fn set_widgets(ui: &mut UiCell,
-                   ids: &mut Ids,
-                   gc: &GameConfig,
-                   vc: &ViewConfig,
-                   play: &mut PlayState)
-                   -> Option<State> {
+pub fn set_widgets(
+    ui: &mut UiCell,
+    ids: &mut Ids,
+    gc: &GameConfig,
+    vc: &ViewConfig,
+    play: &mut PlayState,
+) -> Option<State> {
     play.listen_player();
 
     let cols = gc.cols.to_value();
@@ -52,19 +53,23 @@ pub fn set_widgets(ui: &mut UiCell,
 
     if let Some(pt) = disk_clicked {
         if play.is_waiting_user_input() {
-            play.make_move(pt);
+            let _ = play.make_move(pt);
         }
     }
 
-    let pairs = &[(Side::Black, ids.black_indicator),
-                  (Side::White, ids.white_indicator)];
+    let pairs = &[
+        (Side::Black, ids.black_indicator),
+        (Side::White, ids.white_indicator),
+    ];
     for &(side, id) in pairs {
         Indicator::new(side, play.player_kind(side), play.board().num_disk(side))
-            .and(|build| if id == ids.black_indicator {
-                     build.right_from(ids.board, vc.board_margin)
-                 } else {
-                     build.down_from(ids.black_indicator, 10.0)
-                 })
+            .and(|build| {
+                if id == ids.black_indicator {
+                    build.right_from(ids.board, vc.board_margin)
+                } else {
+                    build.down_from(ids.black_indicator, 10.0)
+                }
+            })
             .w(vc.indicator_width)
             .background_color(vc.board_color)
             .border(vc.border_width)
@@ -81,11 +86,13 @@ pub fn set_widgets(ui: &mut UiCell,
         .w_h(vc.indicator_width, 50.0)
         .align_left_of(ids.black_indicator)
         .align_bottom_of(ids.board)
-        .and(|button| if play.board().turn().is_some() {
-                 button.label("stop")
-             } else {
-                 button.label("return")
-             })
+        .and(|button| {
+            if play.board().turn().is_some() {
+                button.label("stop")
+            } else {
+                button.label("return")
+            }
+        })
         .set(ids.stop_button, ui)
         .was_clicked();
 
