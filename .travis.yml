@@ -10,7 +10,6 @@ addons:
       - libdw-dev
       - binutils-dev
       - libiberty-dev
-      - libsdl2-dev
 
 env:
   global:

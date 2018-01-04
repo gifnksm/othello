@@ -2,7 +2,7 @@ use super::OthelloDisk;
 use conrod::{Borderable, FontSize, Positionable, Scalar, Sizeable, Ui, Widget};
 use conrod::color::{self, Color, Colorable};
 use conrod::position::Dimension;
-use conrod::widget::{self, BorderedRectangle, CommonBuilder, Text, UpdateArgs};
+use conrod::widget::{self, BorderedRectangle, Common, CommonBuilder, Text, UpdateArgs};
 use model::{PlayerKind, Side};
 
 #[derive(Debug)]
@@ -14,18 +14,17 @@ pub struct Indicator {
     num_disk: u32,
 }
 
-widget_style!{
-    style Style {
-        - player_name_font_size: FontSize { 30 }
-        - count_font_size: FontSize { 60 }
-        - white_color: Color { color::WHITE }
-        - black_color: Color { color::BLACK }
-        - background_color: Color { theme.background_color }
-        - border: Scalar { theme.border_width }
-        - border_color: Color { theme.border_color }
-        - cell_size: Scalar { 80.0 }
-        - radius_ratio: Scalar { 0.5 }
-    }
+#[derive(Copy, Clone, Debug, Default, PartialEq, WidgetStyle)]
+pub struct Style {
+    #[conrod(default = "30")] pub player_name_font_size: Option<FontSize>,
+    #[conrod(default = "60")] pub count_font_size: Option<FontSize>,
+    #[conrod(default = "color::WHITE")] pub white_color: Option<Color>,
+    #[conrod(default = "color::BLACK")] pub black_color: Option<Color>,
+    #[conrod(default = "theme.background_color")] pub background_color: Option<Color>,
+    #[conrod(default = "theme.border_width")] pub border: Option<Scalar>,
+    #[conrod(default = "theme.border_color")] pub border_color: Option<Color>,
+    #[conrod(default = "80.0")] pub cell_size: Option<Scalar>,
+    #[conrod(default = "0.5")] pub radius_ratio: Option<Scalar>,
 }
 
 widget_ids! {
@@ -46,8 +45,8 @@ pub struct State {
 impl<'a> Indicator {
     pub fn new(side: Side, kind: PlayerKind, num_disk: u32) -> Self {
         Indicator {
-            common: CommonBuilder::new(),
-            style: Style::new(),
+            common: CommonBuilder::default(),
+            style: Style::default(),
             side: side,
             kind: kind,
             num_disk: num_disk,
@@ -65,11 +64,7 @@ impl<'a> Indicator {
     }
 }
 
-impl Widget for Indicator {
-    type State = State;
-    type Style = Style;
-    type Event = ();
-
+impl Common for Indicator {
     fn common(&self) -> &CommonBuilder {
         &self.common
     }
@@ -77,6 +72,12 @@ impl Widget for Indicator {
     fn common_mut(&mut self) -> &mut CommonBuilder {
         &mut self.common
     }
+}
+
+impl Widget for Indicator {
+    type State = State;
+    type Style = Style;
+    type Event = ();
 
     fn init_state(&self, id_gen: widget::id::Generator) -> State {
         State {
