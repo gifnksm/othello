@@ -53,7 +53,7 @@ pub fn set_widgets(
 
     if let Some(pt) = disk_clicked {
         if play.is_waiting_user_input() {
-            play.make_move(pt);
+            let _ = play.make_move(pt);
         }
     }
 

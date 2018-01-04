@@ -87,7 +87,7 @@ impl<'a> Widget for OthelloBoard<'a> {
             id,
             state,
             rect,
-            mut ui,
+            ui,
             style,
             ..
         } = args;

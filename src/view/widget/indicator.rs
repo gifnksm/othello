@@ -113,7 +113,7 @@ impl Widget for Indicator {
             .font_size(style.player_name_font_size(ui.theme()))
             .set(state.ids.player_name, ui);
 
-        OthelloDisk::new()
+        let _ = OthelloDisk::new()
             .down_from(state.ids.player_name, 5.0)
             .w_h(style.cell_size(ui.theme()), style.cell_size(ui.theme()))
             .background_color(style.background_color(ui.theme()))

@@ -192,7 +192,7 @@ pub fn ai_main(
     tx: &Sender<Point>,
     rx: &Receiver<Message>,
     mut board: Board,
-    mut player: &mut FindMove,
+    player: &mut FindMove,
 ) {
     loop {
         match board.turn() {
