@@ -26,10 +26,14 @@ extern crate ttf_noto_sans;
 extern crate vecmath;
 
 use conrod::UiBuilder;
-use conrod::backend::glium::glium;
-use conrod::backend::glium::glium::Surface;
+use conrod::backend::glium::Renderer;
+use conrod::backend::glium::glium::{self, Display, Surface};
+use conrod::backend::glium::glium::glutin::{ContextBuilder, Event, KeyboardInput, VirtualKeyCode,
+                                            WindowBuilder, WindowEvent};
+use conrod::backend::glium::glium::texture::Texture2d;
 use conrod::image::Map as ImageMap;
 use conrod::text::FontCollection;
+use std::fmt;
 use view::Ids;
 use view_model::App;
 
@@ -41,32 +45,25 @@ fn main() {
     const WIDTH: u32 = 1024;
     const HEIGHT: u32 = 768;
 
-    let mut events_loop = glium::glutin::EventsLoop::new();
-    let window = glium::glutin::WindowBuilder::new()
+    let mut event_loop = EventLoop::new();
+    let window = WindowBuilder::new()
         .with_title("Othello")
         .with_dimensions(WIDTH, HEIGHT);
-    let context = glium::glutin::ContextBuilder::new()
-        .with_vsync(true)
-        .with_multisampling(4);
-    let display =
-        glium::Display::new(window, context, &events_loop).expect("failed to create Display");
+    let context = ContextBuilder::new().with_vsync(true).with_multisampling(4);
+    let display = Display::new(window, context, &event_loop.raw).expect("failed to create Display");
     let mut ui = UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
 
     let font_collection = FontCollection::from_bytes(ttf_noto_sans::REGULAR);
     let _ = ui.fonts
         .insert(font_collection.into_font().expect("failed to into_font"));
 
-    let mut renderer =
-        conrod::backend::glium::Renderer::new(&display).expect("failed to create Renderer");
-
-    let image_map = ImageMap::<glium::texture::Texture2d>::new();
+    let mut renderer = Renderer::new(&display).expect("failed to create Renderer");
+    let image_map = ImageMap::<Texture2d>::new();
 
     let mut app = App::default();
     let mut ids = Ids::new(ui.widget_id_generator());
-
-    let mut event_loop = EventLoop::new();
     'main: loop {
-        for event in event_loop.next(&mut events_loop) {
+        for event in event_loop.next() {
             // Use the `winit` backend feature to convert the winit event to a conrod one.
             if let Some(event) = conrod::backend::winit::convert_event(event.clone(), &display) {
                 ui.handle_event(event);
@@ -74,13 +71,13 @@ fn main() {
             }
 
             match event {
-                glium::glutin::Event::WindowEvent { event, .. } => match event {
+                Event::WindowEvent { event, .. } => match event {
                     // Break from the loop upon `Escape`.
-                    glium::glutin::WindowEvent::Closed |
-                    glium::glutin::WindowEvent::KeyboardInput {
+                    WindowEvent::Closed
+                    | WindowEvent::KeyboardInput {
                         input:
-                            glium::glutin::KeyboardInput {
-                                virtual_keycode: Some(glium::glutin::VirtualKeyCode::Escape),
+                            KeyboardInput {
+                                virtual_keycode: Some(VirtualKeyCode::Escape),
                                 ..
                             },
                         ..
@@ -113,25 +110,34 @@ fn main() {
 ///
 /// This `Iterator`-like type simplifies some of the boilerplate involved in setting up a
 /// glutin+glium event loop that works efficiently with conrod.
-#[derive(Debug, Copy, Clone)]
 pub struct EventLoop {
+    raw: glium::glutin::EventsLoop,
     ui_needs_update: bool,
     last_update: std::time::Instant,
+}
+
+impl fmt::Debug for EventLoop {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "EventLoop {{ raw: ..., ui_needs_update: {:?}, last_update: {:?} }}",
+            self.ui_needs_update,
+            self.last_update
+        )
+    }
 }
 
 impl EventLoop {
     pub fn new() -> Self {
         EventLoop {
+            raw: glium::glutin::EventsLoop::new(),
             last_update: std::time::Instant::now(),
             ui_needs_update: true,
         }
     }
 
     /// Produce an iterator yielding all available events.
-    pub fn next(
-        &mut self,
-        events_loop: &mut glium::glutin::EventsLoop,
-    ) -> Vec<glium::glutin::Event> {
+    pub fn next(&mut self) -> Vec<glium::glutin::Event> {
         // We don't want to loop any faster than 60 FPS, so wait until it has been at least 16ms
         // since the last yield.
         let last_update = self.last_update;
@@ -143,11 +149,11 @@ impl EventLoop {
 
         // Collect all pending events.
         let mut events = Vec::new();
-        events_loop.poll_events(|event| events.push(event));
+        self.raw.poll_events(|event| events.push(event));
 
         // If there are no events and the `Ui` does not need updating, wait for the next event.
         if events.is_empty() && !self.ui_needs_update {
-            events_loop.run_forever(|event| {
+            self.raw.run_forever(|event| {
                 events.push(event);
                 glium::glutin::ControlFlow::Break
             });
