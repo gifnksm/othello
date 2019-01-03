@@ -1,4 +1,4 @@
-use model::{AiPlayer, Board, PlayerKind, Point, Side, Size};
+use crate::model::{AiPlayer, Board, PlayerKind, Point, Side, Size};
 use std::mem;
 use std::sync::mpsc::TryRecvError;
 

@@ -1,9 +1,9 @@
 use super::OthelloDisk;
+use crate::model::{PlayerKind, Side};
 use conrod::color::{self, Color, Colorable};
 use conrod::position::Dimension;
 use conrod::widget::{self, BorderedRectangle, Common, CommonBuilder, Text, UpdateArgs};
 use conrod::{Borderable, FontSize, Positionable, Scalar, Sizeable, Ui, Widget};
-use model::{PlayerKind, Side};
 
 #[derive(Debug)]
 pub struct Indicator {
@@ -88,7 +88,7 @@ impl Widget for Indicator {
     type Style = Style;
     type Event = ();
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> State {
+    fn init_state(&self, id_gen: widget::id::Generator<'_>) -> State {
         State {
             ids: Ids::new(id_gen),
         }
@@ -98,7 +98,7 @@ impl Widget for Indicator {
         self.style
     }
 
-    fn update(self, args: UpdateArgs<Self>) -> Self::Event {
+    fn update(self, args: UpdateArgs<'_, '_, '_, '_, Self>) -> Self::Event {
         let UpdateArgs {
             id,
             state,

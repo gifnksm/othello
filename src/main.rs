@@ -21,10 +21,9 @@
 extern crate conrod;
 #[macro_use]
 extern crate conrod_derive;
-extern crate rand;
-extern crate ttf_noto_sans;
-extern crate vecmath;
 
+use crate::view::Ids;
+use crate::view_model::App;
 use conrod::backend::glium::glium::glutin::{
     ContextBuilder, Event, KeyboardInput, VirtualKeyCode, WindowBuilder, WindowEvent,
 };
@@ -35,8 +34,6 @@ use conrod::image::Map as ImageMap;
 use conrod::text::FontCollection;
 use conrod::UiBuilder;
 use std::fmt;
-use view::Ids;
-use view_model::App;
 
 mod model;
 mod view;
@@ -119,7 +116,7 @@ pub struct EventLoop {
 }
 
 impl fmt::Debug for EventLoop {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "EventLoop {{ raw: ..., ui_needs_update: {:?}, last_update: {:?} }}",

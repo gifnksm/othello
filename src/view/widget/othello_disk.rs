@@ -1,7 +1,7 @@
+use crate::model::Side;
 use conrod::color::{self, Color, Colorable};
 use conrod::widget::{self, BorderedRectangle, Circle, Common, CommonBuilder, UpdateArgs};
 use conrod::{Borderable, Point, Positionable, Scalar, Widget};
-use model::Side;
 use vecmath;
 
 #[derive(Debug)]
@@ -98,7 +98,7 @@ impl Widget for OthelloDisk {
     type Style = Style;
     type Event = bool;
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> State {
+    fn init_state(&self, id_gen: widget::id::Generator<'_>) -> State {
         State {
             ids: Ids::new(id_gen),
         }
@@ -108,7 +108,7 @@ impl Widget for OthelloDisk {
         self.style
     }
 
-    fn update(self, args: UpdateArgs<Self>) -> Self::Event {
+    fn update(self, args: UpdateArgs<'_, '_, '_, '_, Self>) -> Self::Event {
         let UpdateArgs {
             id,
             state,

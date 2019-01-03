@@ -1,5 +1,5 @@
 use super::{Evaluate, FindMove, Score, MAX_SCORE, MIN_SCORE};
-use model::{Board, Point, Side};
+use crate::model::{Board, Point, Side};
 use std::{cmp, u32};
 
 #[derive(Clone, Debug)]

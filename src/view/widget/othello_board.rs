@@ -1,8 +1,8 @@
 use super::OthelloDisk;
+use crate::model::{Board, Point};
 use conrod::color::{self, Color, Colorable};
 use conrod::widget::{self, Circle, Common, CommonBuilder, Matrix, UpdateArgs};
 use conrod::{Borderable, Positionable, Scalar, Sizeable, Widget};
-use model::{Board, Point};
 
 #[derive(Debug)]
 pub struct OthelloBoard<'a> {
@@ -80,7 +80,7 @@ impl<'a> Widget for OthelloBoard<'a> {
     type Style = Style;
     type Event = Option<Point>;
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> State {
+    fn init_state(&self, id_gen: widget::id::Generator<'_>) -> State {
         State {
             ids: Ids::new(id_gen),
         }
@@ -90,7 +90,7 @@ impl<'a> Widget for OthelloBoard<'a> {
         self.style
     }
 
-    fn update(self, args: UpdateArgs<Self>) -> Self::Event {
+    fn update(self, args: UpdateArgs<'_, '_, '_, '_, Self>) -> Self::Event {
         let UpdateArgs {
             id,
             state,

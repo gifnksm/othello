@@ -1,5 +1,5 @@
 use super::{Evaluate, Score};
-use model::{BitBoard, Board, Point, Side, Size};
+use crate::model::{BitBoard, Board, Point, Side, Size};
 use std::{f64, i32};
 
 #[derive(Clone, Debug)]

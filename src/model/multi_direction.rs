@@ -90,7 +90,7 @@ impl MdMask {
             | self.masks[7]
     }
 
-    pub fn iter_mut(&mut self) -> slice::IterMut<BitBoard> {
+    pub fn iter_mut(&mut self) -> slice::IterMut<'_, BitBoard> {
         self.masks.iter_mut()
     }
 }

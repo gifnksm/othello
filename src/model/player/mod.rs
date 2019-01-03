@@ -3,7 +3,7 @@ pub use self::evaluator::{
     Evaluate, EvenEvaluator, Score, StrongEvaluator, WeakEvaluator, MAX_SCORE, MIN_SCORE,
 };
 use self::random::Player as RandomPlayer;
-use model::{Board, Point, Side};
+use crate::model::{Board, Point, Side};
 use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
 use std::thread::{self, JoinHandle};
 
@@ -133,7 +133,7 @@ impl AiPlayer {
         let (player_tx, host_rx) = mpsc::channel();
         let board = *board;
         let handle = thread::spawn(move || {
-            let mut player: Box<FindMove> = match ai_kind {
+            let mut player: Box<dyn FindMove> = match ai_kind {
                 AiKind::Random => Box::new(RandomPlayer::new()),
                 AiKind::AlphaBetaStrong(power) => {
                     let evaluator = StrongEvaluator::new(board.size());
@@ -193,7 +193,7 @@ pub fn ai_main(
     tx: &Sender<Point>,
     rx: &Receiver<Message>,
     mut board: Board,
-    player: &mut FindMove,
+    player: &mut dyn FindMove,
 ) {
     loop {
         match board.turn() {

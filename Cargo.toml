@@ -2,6 +2,7 @@
 name = "othello"
 version = "0.1.0"
 authors = ["gifnksm <makoto.nksm+github@gmail.com>"]
+edition = "2018"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/gifnksm/othello"
