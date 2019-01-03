@@ -25,14 +25,15 @@ extern crate rand;
 extern crate ttf_noto_sans;
 extern crate vecmath;
 
-use conrod::UiBuilder;
-use conrod::backend::glium::Renderer;
-use conrod::backend::glium::glium::{self, Display, Surface};
-use conrod::backend::glium::glium::glutin::{ContextBuilder, Event, KeyboardInput, VirtualKeyCode,
-                                            WindowBuilder, WindowEvent};
+use conrod::backend::glium::glium::glutin::{
+    ContextBuilder, Event, KeyboardInput, VirtualKeyCode, WindowBuilder, WindowEvent,
+};
 use conrod::backend::glium::glium::texture::Texture2d;
+use conrod::backend::glium::glium::{self, Display, Surface};
+use conrod::backend::glium::Renderer;
 use conrod::image::Map as ImageMap;
 use conrod::text::FontCollection;
+use conrod::UiBuilder;
 use std::fmt;
 use view::Ids;
 use view_model::App;
@@ -54,7 +55,8 @@ fn main() {
     let mut ui = UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
 
     let font_collection = FontCollection::from_bytes(ttf_noto_sans::REGULAR);
-    let _ = ui.fonts
+    let _ = ui
+        .fonts
         .insert(font_collection.into_font().expect("failed to into_font"));
 
     let mut renderer = Renderer::new(&display).expect("failed to create Renderer");
@@ -121,8 +123,7 @@ impl fmt::Debug for EventLoop {
         write!(
             f,
             "EventLoop {{ raw: ..., ui_needs_update: {:?}, last_update: {:?} }}",
-            self.ui_needs_update,
-            self.last_update
+            self.ui_needs_update, self.last_update
         )
     }
 }

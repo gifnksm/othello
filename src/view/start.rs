@@ -1,8 +1,8 @@
 use super::Ids;
-use conrod::{Labelable, Sizeable, UiCell, Widget};
-use conrod::Positionable;
 use conrod::color::Colorable;
 use conrod::widget::{Button, Canvas, DropDownList, Text};
+use conrod::Positionable;
+use conrod::{Labelable, Sizeable, UiCell, Widget};
 use model::{PlayerKind, Size};
 use view_model::{BoardSize, GameConfig, PlayState, State, ViewConfig};
 

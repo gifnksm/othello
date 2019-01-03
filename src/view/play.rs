@@ -1,10 +1,10 @@
-use super::Ids;
 use super::widget::{Indicator, OthelloBoard};
-use conrod::{Borderable, Labelable, Sizeable, UiCell, Widget};
-use conrod::Positionable;
+use super::Ids;
 use conrod::color::Colorable;
-use conrod::widget::{Button, Canvas, Rectangle};
 use conrod::widget::line::Style as LineStyle;
+use conrod::widget::{Button, Canvas, Rectangle};
+use conrod::Positionable;
+use conrod::{Borderable, Labelable, Sizeable, UiCell, Widget};
 use model::Side;
 use view_model::{GameConfig, PlayState, State, ViewConfig};
 

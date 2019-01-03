@@ -1,6 +1,8 @@
 use super::{Point, Size};
-use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not, Shl,
-               ShlAssign, Shr, ShrAssign};
+use std::ops::{
+    BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not, Shl, ShlAssign, Shr,
+    ShrAssign,
+};
 
 #[derive(Copy, Clone, Debug)]
 pub struct BitBoard {
@@ -58,7 +60,9 @@ macro_rules! impl_binops {
         impl $trt for BitBoard {
             type Output = Self;
             fn $op(self, rhs: Self) -> Self {
-                BitBoard { bits: self.bits.$op(rhs.bits) }
+                BitBoard {
+                    bits: self.bits.$op(rhs.bits),
+                }
             }
         }
         impl $trt_assign for BitBoard {
@@ -66,7 +70,7 @@ macro_rules! impl_binops {
                 self.bits.$op_assign(rhs.bits)
             }
         }
-    }
+    };
 }
 impl_binops!(BitAnd, bitand; BitAndAssign, bitand_assign);
 impl_binops!(BitOr, bitor; BitOrAssign, bitor_assign);
@@ -77,7 +81,9 @@ macro_rules! impl_shops {
         impl $trt for BitBoard {
             type Output = Self;
             fn $op(self, rhs: u32) -> BitBoard {
-                BitBoard { bits: self.bits.$op(rhs) }
+                BitBoard {
+                    bits: self.bits.$op(rhs),
+                }
             }
         }
         impl $trt_assign for BitBoard {
@@ -85,7 +91,7 @@ macro_rules! impl_shops {
                 self.bits.$op_assign(rhs)
             }
         }
-    }
+    };
 }
 impl_shops!(Shl<u32>, shl; ShlAssign<u32>, shl_assign);
 impl_shops!(Shr<u32>, shr; ShrAssign<u32>, shr_assign);

@@ -1,8 +1,8 @@
 use conrod::UiCell;
 use view_model::{App, State};
 
-mod start;
 mod play;
+mod start;
 mod widget;
 
 widget_ids! {

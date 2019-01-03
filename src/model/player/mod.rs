@@ -1,6 +1,7 @@
 use self::alpha_beta::Player as AlphaBetaPlayer;
-pub use self::evaluator::{Evaluate, EvenEvaluator, Score, StrongEvaluator, WeakEvaluator,
-                          MAX_SCORE, MIN_SCORE};
+pub use self::evaluator::{
+    Evaluate, EvenEvaluator, Score, StrongEvaluator, WeakEvaluator, MAX_SCORE, MIN_SCORE,
+};
 use self::random::Player as RandomPlayer;
 use model::{Board, Point, Side};
 use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};

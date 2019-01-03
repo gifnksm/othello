@@ -1,7 +1,7 @@
 use super::OthelloDisk;
-use conrod::{Borderable, Positionable, Scalar, Sizeable, Widget};
 use conrod::color::{self, Color, Colorable};
 use conrod::widget::{self, Circle, Common, CommonBuilder, Matrix, UpdateArgs};
+use conrod::{Borderable, Positionable, Scalar, Sizeable, Widget};
 use model::{Board, Point};
 
 #[derive(Debug)]
@@ -14,13 +14,20 @@ pub struct OthelloBoard<'a> {
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, WidgetStyle)]
 pub struct Style {
-    #[conrod(default = "color::WHITE")] pub white_color: Option<Color>,
-    #[conrod(default = "color::BLACK")] pub black_color: Option<Color>,
-    #[conrod(default = "theme.background_color")] pub background_color: Option<Color>,
-    #[conrod(default = "theme.border_width")] pub border: Option<Scalar>,
-    #[conrod(default = "theme.border_color")] pub border_color: Option<Color>,
-    #[conrod(default = "0.5")] pub radius_ratio: Option<Scalar>,
-    #[conrod(default = "6.0")] pub dot_radius: Option<Scalar>,
+    #[conrod(default = "color::WHITE")]
+    pub white_color: Option<Color>,
+    #[conrod(default = "color::BLACK")]
+    pub black_color: Option<Color>,
+    #[conrod(default = "theme.background_color")]
+    pub background_color: Option<Color>,
+    #[conrod(default = "theme.border_width")]
+    pub border: Option<Scalar>,
+    #[conrod(default = "theme.border_color")]
+    pub border_color: Option<Color>,
+    #[conrod(default = "0.5")]
+    pub radius_ratio: Option<Scalar>,
+    #[conrod(default = "6.0")]
+    pub dot_radius: Option<Scalar>,
 }
 
 widget_ids! {
@@ -49,7 +56,7 @@ impl<'a> OthelloBoard<'a> {
         }
     }
 
-    builder_methods!{
+    builder_methods! {
         pub white_color { style.white_color = Some(Color) }
         pub black_color { style.black_color = Some(Color) }
         pub background_color { style.background_color = Some(Color) }
@@ -113,7 +120,8 @@ impl<'a> Widget for OthelloBoard<'a> {
             if let Some(side) = self.board.get(pt) {
                 disk = disk.disk(side);
             }
-            disk = disk.background_color(style.background_color(ui.theme()))
+            disk = disk
+                .background_color(style.background_color(ui.theme()))
                 .border(style.border(ui.theme()))
                 .border_color(style.border_color(ui.theme()))
                 .white_color(style.white_color(ui.theme()))

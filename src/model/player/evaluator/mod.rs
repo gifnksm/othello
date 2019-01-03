@@ -2,8 +2,8 @@ pub use self::even::Evaluator as EvenEvaluator;
 pub use self::strong::Evaluator as StrongEvaluator;
 pub use self::weak::Evaluator as WeakEvaluator;
 use model::{Board, Side};
-use std::{f64, i32};
 use std::cmp::Ordering;
+use std::{f64, i32};
 
 mod even;
 mod strong;

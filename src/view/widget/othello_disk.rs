@@ -1,6 +1,6 @@
-use conrod::{Borderable, Point, Positionable, Scalar, Widget};
 use conrod::color::{self, Color, Colorable};
 use conrod::widget::{self, BorderedRectangle, Circle, Common, CommonBuilder, UpdateArgs};
+use conrod::{Borderable, Point, Positionable, Scalar, Widget};
 use model::Side;
 use vecmath;
 
@@ -14,12 +14,18 @@ pub struct OthelloDisk {
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, WidgetStyle)]
 pub struct Style {
-    #[conrod(default = "color::WHITE")] pub white_color: Option<Color>,
-    #[conrod(default = "color::BLACK")] pub black_color: Option<Color>,
-    #[conrod(default = "theme.background_color")] pub background_color: Option<Color>,
-    #[conrod(default = "theme.border_width")] pub border: Option<Scalar>,
-    #[conrod(default = "theme.border_color")] pub border_color: Option<Color>,
-    #[conrod(default = "0.5")] pub radius_ratio: Option<Scalar>,
+    #[conrod(default = "color::WHITE")]
+    pub white_color: Option<Color>,
+    #[conrod(default = "color::BLACK")]
+    pub black_color: Option<Color>,
+    #[conrod(default = "theme.background_color")]
+    pub background_color: Option<Color>,
+    #[conrod(default = "theme.border_width")]
+    pub border: Option<Scalar>,
+    #[conrod(default = "theme.border_color")]
+    pub border_color: Option<Color>,
+    #[conrod(default = "0.5")]
+    pub radius_ratio: Option<Scalar>,
 }
 
 widget_ids! {
@@ -50,7 +56,7 @@ impl OthelloDisk {
         }
     }
 
-    builder_methods!{
+    builder_methods! {
         pub white_color { style.white_color = Some(Color) }
         pub black_color { style.black_color = Some(Color) }
         pub background_color { style.background_color = Some(Color) }
