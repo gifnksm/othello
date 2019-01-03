@@ -12,8 +12,7 @@
 #![warn(clippy::mut_mut)]
 #![warn(clippy::string_add)]
 #![warn(clippy::string_add_assign)]
-#![cfg_attr(feature = "nightly", feature(windows_subsystem))]
-#![cfg_attr(feature = "nightly", windows_subsystem = "windows")]
+#![windows_subsystem = "windows"]
 
 #[macro_use]
 extern crate conrod;
