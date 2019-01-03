@@ -22,8 +22,8 @@ impl PlayState {
             board: board,
             black_kind: black_kind,
             white_kind: white_kind,
-            black_ai_player: AiPlayer::new(black_kind, &board, Side::Black),
-            white_ai_player: AiPlayer::new(white_kind, &board, Side::White),
+            black_ai_player: AiPlayer::try_new(black_kind, &board, Side::Black),
+            white_ai_player: AiPlayer::try_new(white_kind, &board, Side::White),
         }
     }
 

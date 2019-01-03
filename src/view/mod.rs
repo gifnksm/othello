@@ -29,7 +29,7 @@ pub fn set_widgets(ui: &mut UiCell<'_>, ids: &mut Ids, app: &mut App) {
     let new_state = match app.state {
         State::Start => start::set_widgets(ui, ids, &mut app.game_config, &app.view_config),
         State::Play(ref mut play) => {
-            play::set_widgets(ui, ids, &app.game_config, &app.view_config, play)
+            play::set_widgets(ui, ids, app.game_config, &app.view_config, play)
         }
     };
 

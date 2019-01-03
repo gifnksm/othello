@@ -35,23 +35,23 @@ impl BitBoard {
         BitBoard { bits: 1 << offset }
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub fn is_empty(self) -> bool {
         self.bits == 0
     }
 
-    pub fn num_bits(&self) -> u32 {
+    pub fn num_bits(self) -> u32 {
         self.bits.count_ones()
     }
 
-    pub fn points(&self, size: Size) -> Points {
+    pub fn points(self, size: Size) -> Points {
         Points {
             size: size,
-            mask: *self,
+            mask: self,
         }
     }
 
-    pub fn contains(&self, pt: Point, size: Size) -> bool {
-        !(*self & Self::from_point(pt, size)).is_empty()
+    pub fn contains(self, pt: Point, size: Size) -> bool {
+        !(self & Self::from_point(pt, size)).is_empty()
     }
 }
 

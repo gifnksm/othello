@@ -29,7 +29,7 @@ where
         let cands = board.move_candidates();
         let size = board.size();
         let num_cands = cands.num_bits();
-        let child_num_eval = (self.num_eval as f64) / (num_cands as f64);
+        let child_num_eval = f64::from(self.num_eval) / f64::from(num_cands);
 
         cands
             .points(size)
@@ -57,7 +57,7 @@ where
         let cands = board.move_candidates();
         let size = board.size();
         let num_cands = cands.num_bits();
-        let child_num_eval = num_eval / (num_cands as f64);
+        let child_num_eval = num_eval / f64::from(num_cands);
 
         let it = cands.points(size).map(|pt| board.make_move(pt).unwrap());
 

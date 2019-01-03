@@ -11,7 +11,7 @@ use conrod::{Borderable, Labelable, Sizeable, UiCell, Widget};
 pub fn set_widgets(
     ui: &mut UiCell<'_>,
     ids: &mut Ids,
-    gc: &GameConfig,
+    gc: GameConfig,
     vc: &ViewConfig,
     play: &mut PlayState,
 ) -> Option<State> {
@@ -25,11 +25,11 @@ pub fn set_widgets(
         .scroll_kids()
         .set(ids.canvas, ui);
 
-    let board_width = vc.cell_size * (cols as f64);
+    let board_width = vc.cell_size * f64::from(cols);
     let indicator_width = vc.cell_size + vc.indicator_text_width;
     let width = board_width + vc.board_margin * 2.0 + indicator_width + vc.board_margin;
 
-    let board_height = vc.cell_size * (rows as f64);
+    let board_height = vc.cell_size * f64::from(rows);
     let indicator_height = vc.cell_size * 2.0;
     let height = vc.board_margin * 2.0 + f64::max(board_height, indicator_height);
 

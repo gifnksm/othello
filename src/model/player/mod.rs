@@ -39,9 +39,9 @@ pub enum AiPower {
 }
 
 impl AiPower {
-    fn to_alpha_beta_power(&self) -> u32 {
+    fn to_alpha_beta_power(self) -> u32 {
         use self::AiPower::*;
-        match *self {
+        match self {
             Small => 1_000_000,
             Medium => 10_000_000,
             Large => 100_000_000,
@@ -96,11 +96,11 @@ impl PlayerKind {
         ]
     }
 
-    pub fn to_index(&self) -> usize {
+    pub fn to_index(self) -> usize {
         use self::AiKind::*;
         use self::AiPower::*;
         use self::PlayerKind::*;
-        match *self {
+        match self {
             Human => 0,
             Ai(Random) => 1,
             Ai(AlphaBetaStrong(Small)) => 2,
@@ -123,7 +123,7 @@ pub struct AiPlayer {
 }
 
 impl AiPlayer {
-    pub fn new(kind: PlayerKind, board: &Board, side: Side) -> Option<AiPlayer> {
+    pub fn try_new(kind: PlayerKind, board: &Board, side: Side) -> Option<AiPlayer> {
         let ai_kind = match kind {
             PlayerKind::Human => return None,
             PlayerKind::Ai(ai_kind) => ai_kind,

@@ -11,9 +11,9 @@ impl Evaluate for Evaluator {
     fn evaluate(&self, board: &Board, myside: Side) -> Score {
         match board.turn() {
             Some(_) => {
-                let num_disk = (board.black_cells() | board.white_cells()).num_bits() as f64;
-                let disk_score = self.eval_disk_place(board) as f64;
-                let cand_score = self.eval_move_candidates(board) as f64;
+                let num_disk = f64::from((board.black_cells() | board.white_cells()).num_bits());
+                let disk_score = f64::from(self.eval_disk_place(board));
+                let cand_score = f64::from(self.eval_move_candidates(board));
                 // TODO: set appropriate score weights
                 let black_score = disk_score / num_disk + 0.1 * cand_score;
                 let score = match myside {

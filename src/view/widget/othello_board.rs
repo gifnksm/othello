@@ -135,9 +135,9 @@ impl<'a> Widget for OthelloBoard<'a> {
         }
 
         if size.0 >= 4 && size.1 >= 4 {
-            let cell_width = w / (size.0 as f64);
-            let cell_height = h / (size.1 as f64);
-            let (sx, sy) = (size.0 as f64, size.1 as f64);
+            let cell_width = w / f64::from(size.0);
+            let cell_height = h / f64::from(size.1);
+            let (sx, sy) = (f64::from(size.0), f64::from(size.1));
             let pairs = &[
                 (state.ids.dot_ul, (2.0, 2.0)),
                 (state.ids.dot_ur, (2.0, sy - 2.0)),

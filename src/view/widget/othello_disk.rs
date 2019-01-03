@@ -74,8 +74,8 @@ pub enum Interaction {
 }
 
 impl Interaction {
-    fn color(&self, color: Color) -> Color {
-        match *self {
+    fn color(self, color: Color) -> Color {
+        match self {
             Interaction::Normal => color,
             Interaction::Highlighted => color.highlighted(),
             Interaction::Clicked => color.clicked(),
