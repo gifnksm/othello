@@ -1,9 +1,9 @@
 use super::OthelloDisk;
-use conrod::{Borderable, FontSize, Positionable, Scalar, Sizeable, Ui, Widget};
+use crate::model::{PlayerKind, Side};
 use conrod::color::{self, Color, Colorable};
 use conrod::position::Dimension;
 use conrod::widget::{self, BorderedRectangle, Common, CommonBuilder, Text, UpdateArgs};
-use model::{PlayerKind, Side};
+use conrod::{Borderable, FontSize, Positionable, Scalar, Sizeable, Ui, Widget};
 
 #[derive(Debug)]
 pub struct Indicator {
@@ -16,15 +16,24 @@ pub struct Indicator {
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, WidgetStyle)]
 pub struct Style {
-    #[conrod(default = "30")] pub player_name_font_size: Option<FontSize>,
-    #[conrod(default = "60")] pub count_font_size: Option<FontSize>,
-    #[conrod(default = "color::WHITE")] pub white_color: Option<Color>,
-    #[conrod(default = "color::BLACK")] pub black_color: Option<Color>,
-    #[conrod(default = "theme.background_color")] pub background_color: Option<Color>,
-    #[conrod(default = "theme.border_width")] pub border: Option<Scalar>,
-    #[conrod(default = "theme.border_color")] pub border_color: Option<Color>,
-    #[conrod(default = "80.0")] pub cell_size: Option<Scalar>,
-    #[conrod(default = "0.5")] pub radius_ratio: Option<Scalar>,
+    #[conrod(default = "30")]
+    pub player_name_font_size: Option<FontSize>,
+    #[conrod(default = "60")]
+    pub count_font_size: Option<FontSize>,
+    #[conrod(default = "color::WHITE")]
+    pub white_color: Option<Color>,
+    #[conrod(default = "color::BLACK")]
+    pub black_color: Option<Color>,
+    #[conrod(default = "theme.background_color")]
+    pub background_color: Option<Color>,
+    #[conrod(default = "theme.border_width")]
+    pub border: Option<Scalar>,
+    #[conrod(default = "theme.border_color")]
+    pub border_color: Option<Color>,
+    #[conrod(default = "80.0")]
+    pub cell_size: Option<Scalar>,
+    #[conrod(default = "0.5")]
+    pub radius_ratio: Option<Scalar>,
 }
 
 widget_ids! {
@@ -53,7 +62,7 @@ impl<'a> Indicator {
         }
     }
 
-    builder_methods!{
+    builder_methods! {
         pub player_name_font_size { style.player_name_font_size = Some(FontSize) }
         pub count_font_size { style.count_font_size = Some(FontSize) }
         pub white_color { style.white_color = Some(Color) }
@@ -79,7 +88,7 @@ impl Widget for Indicator {
     type Style = Style;
     type Event = ();
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> State {
+    fn init_state(&self, id_gen: widget::id::Generator<'_>) -> State {
         State {
             ids: Ids::new(id_gen),
         }
@@ -89,7 +98,7 @@ impl Widget for Indicator {
         self.style
     }
 
-    fn update(self, args: UpdateArgs<Self>) -> Self::Event {
+    fn update(self, args: UpdateArgs<'_, '_, '_, '_, Self>) -> Self::Event {
         let UpdateArgs {
             id,
             state,

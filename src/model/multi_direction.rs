@@ -49,7 +49,7 @@ impl MdOffset {
         let ul_mask = u_mask & l_mask;
 
         [
-            r_mask, d_mask, dl_mask, dr_mask, l_mask, u_mask, ur_mask, ul_mask
+            r_mask, d_mask, dl_mask, dr_mask, l_mask, u_mask, ur_mask, ul_mask,
         ]
     }
 }
@@ -80,11 +80,17 @@ impl MdMask {
     }
 
     pub fn or_all(self) -> BitBoard {
-        self.masks[0] | self.masks[1] | self.masks[2] | self.masks[3] | self.masks[4]
-            | self.masks[5] | self.masks[6] | self.masks[7]
+        self.masks[0]
+            | self.masks[1]
+            | self.masks[2]
+            | self.masks[3]
+            | self.masks[4]
+            | self.masks[5]
+            | self.masks[6]
+            | self.masks[7]
     }
 
-    pub fn iter_mut(&mut self) -> slice::IterMut<BitBoard> {
+    pub fn iter_mut(&mut self) -> slice::IterMut<'_, BitBoard> {
         self.masks.iter_mut()
     }
 }

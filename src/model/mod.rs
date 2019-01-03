@@ -15,7 +15,7 @@ impl Point {
         Point(off % size.0, off / size.0)
     }
 
-    fn offset(&self, size: Size) -> u32 {
+    fn offset(self, size: Size) -> u32 {
         self.0 + size.0 * self.1
     }
 }

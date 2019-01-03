@@ -1,7 +1,7 @@
-use conrod::{Borderable, Point, Positionable, Scalar, Widget};
+use crate::model::Side;
 use conrod::color::{self, Color, Colorable};
 use conrod::widget::{self, BorderedRectangle, Circle, Common, CommonBuilder, UpdateArgs};
-use model::Side;
+use conrod::{Borderable, Point, Positionable, Scalar, Widget};
 use vecmath;
 
 #[derive(Debug)]
@@ -14,12 +14,18 @@ pub struct OthelloDisk {
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, WidgetStyle)]
 pub struct Style {
-    #[conrod(default = "color::WHITE")] pub white_color: Option<Color>,
-    #[conrod(default = "color::BLACK")] pub black_color: Option<Color>,
-    #[conrod(default = "theme.background_color")] pub background_color: Option<Color>,
-    #[conrod(default = "theme.border_width")] pub border: Option<Scalar>,
-    #[conrod(default = "theme.border_color")] pub border_color: Option<Color>,
-    #[conrod(default = "0.5")] pub radius_ratio: Option<Scalar>,
+    #[conrod(default = "color::WHITE")]
+    pub white_color: Option<Color>,
+    #[conrod(default = "color::BLACK")]
+    pub black_color: Option<Color>,
+    #[conrod(default = "theme.background_color")]
+    pub background_color: Option<Color>,
+    #[conrod(default = "theme.border_width")]
+    pub border: Option<Scalar>,
+    #[conrod(default = "theme.border_color")]
+    pub border_color: Option<Color>,
+    #[conrod(default = "0.5")]
+    pub radius_ratio: Option<Scalar>,
 }
 
 widget_ids! {
@@ -50,7 +56,7 @@ impl OthelloDisk {
         }
     }
 
-    builder_methods!{
+    builder_methods! {
         pub white_color { style.white_color = Some(Color) }
         pub black_color { style.black_color = Some(Color) }
         pub background_color { style.background_color = Some(Color) }
@@ -68,8 +74,8 @@ pub enum Interaction {
 }
 
 impl Interaction {
-    fn color(&self, color: Color) -> Color {
-        match *self {
+    fn color(self, color: Color) -> Color {
+        match self {
             Interaction::Normal => color,
             Interaction::Highlighted => color.highlighted(),
             Interaction::Clicked => color.clicked(),
@@ -92,7 +98,7 @@ impl Widget for OthelloDisk {
     type Style = Style;
     type Event = bool;
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> State {
+    fn init_state(&self, id_gen: widget::id::Generator<'_>) -> State {
         State {
             ids: Ids::new(id_gen),
         }
@@ -102,7 +108,7 @@ impl Widget for OthelloDisk {
         self.style
     }
 
-    fn update(self, args: UpdateArgs<Self>) -> Self::Event {
+    fn update(self, args: UpdateArgs<'_, '_, '_, '_, Self>) -> Self::Event {
         let UpdateArgs {
             id,
             state,

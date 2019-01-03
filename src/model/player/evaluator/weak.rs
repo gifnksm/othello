@@ -1,5 +1,5 @@
 use super::{Evaluate, Score, StrongEvaluator};
-use model::{Board, Side, Size};
+use crate::model::{Board, Side, Size};
 
 #[derive(Clone, Debug)]
 pub struct Evaluator {

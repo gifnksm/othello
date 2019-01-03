@@ -1,5 +1,5 @@
-use super::{BitBoard, Point, Side, Size, MAX_SIZE, MIN_SIZE};
 use super::multi_direction::{MdMask, MdOffset};
+use super::{BitBoard, Point, Side, Size, MAX_SIZE, MIN_SIZE};
 use std::cmp;
 
 #[derive(Copy, Clone, Debug)]

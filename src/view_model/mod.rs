@@ -52,13 +52,13 @@ impl BoardSize {
         [N2, N3, N4, N5, N6, N7, N8]
     }
 
-    pub fn to_index(&self) -> usize {
-        *self as usize
+    pub fn to_index(self) -> usize {
+        self as usize
     }
 
-    pub fn to_value(&self) -> u32 {
+    pub fn to_value(self) -> u32 {
         use self::BoardSize::*;
-        match *self {
+        match self {
             N2 => 2,
             N3 => 3,
             N4 => 4,

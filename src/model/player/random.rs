@@ -1,5 +1,5 @@
 use super::FindMove;
-use model::{Board, Point};
+use crate::model::{Board, Point};
 use rand::{self, ThreadRng};
 
 pub struct Player {

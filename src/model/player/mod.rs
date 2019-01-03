@@ -1,8 +1,9 @@
 use self::alpha_beta::Player as AlphaBetaPlayer;
-pub use self::evaluator::{Evaluate, EvenEvaluator, Score, StrongEvaluator, WeakEvaluator,
-                          MAX_SCORE, MIN_SCORE};
+pub use self::evaluator::{
+    Evaluate, EvenEvaluator, Score, StrongEvaluator, WeakEvaluator, MAX_SCORE, MIN_SCORE,
+};
 use self::random::Player as RandomPlayer;
-use model::{Board, Point, Side};
+use crate::model::{Board, Point, Side};
 use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
 use std::thread::{self, JoinHandle};
 
@@ -38,9 +39,9 @@ pub enum AiPower {
 }
 
 impl AiPower {
-    fn to_alpha_beta_power(&self) -> u32 {
+    fn to_alpha_beta_power(self) -> u32 {
         use self::AiPower::*;
-        match *self {
+        match self {
             Small => 1_000_000,
             Medium => 10_000_000,
             Large => 100_000_000,
@@ -95,11 +96,11 @@ impl PlayerKind {
         ]
     }
 
-    pub fn to_index(&self) -> usize {
+    pub fn to_index(self) -> usize {
         use self::AiKind::*;
         use self::AiPower::*;
         use self::PlayerKind::*;
-        match *self {
+        match self {
             Human => 0,
             Ai(Random) => 1,
             Ai(AlphaBetaStrong(Small)) => 2,
@@ -122,7 +123,7 @@ pub struct AiPlayer {
 }
 
 impl AiPlayer {
-    pub fn new(kind: PlayerKind, board: &Board, side: Side) -> Option<AiPlayer> {
+    pub fn try_new(kind: PlayerKind, board: &Board, side: Side) -> Option<AiPlayer> {
         let ai_kind = match kind {
             PlayerKind::Human => return None,
             PlayerKind::Ai(ai_kind) => ai_kind,
@@ -132,7 +133,7 @@ impl AiPlayer {
         let (player_tx, host_rx) = mpsc::channel();
         let board = *board;
         let handle = thread::spawn(move || {
-            let mut player: Box<FindMove> = match ai_kind {
+            let mut player: Box<dyn FindMove> = match ai_kind {
                 AiKind::Random => Box::new(RandomPlayer::new()),
                 AiKind::AlphaBetaStrong(power) => {
                     let evaluator = StrongEvaluator::new(board.size());
@@ -192,7 +193,7 @@ pub fn ai_main(
     tx: &Sender<Point>,
     rx: &Receiver<Message>,
     mut board: Board,
-    player: &mut FindMove,
+    player: &mut dyn FindMove,
 ) {
     loop {
         match board.turn() {

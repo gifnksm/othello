@@ -9,33 +9,28 @@
 #![warn(unused_import_braces)]
 #![warn(unused_qualifications)]
 #![warn(unused_results)]
-#![cfg_attr(feature = "nightly", feature(plugin))]
-#![cfg_attr(feature = "nightly", plugin(clippy))]
-#![cfg_attr(feature = "nightly", warn(mut_mut))]
-#![cfg_attr(feature = "nightly", warn(string_add))]
-#![cfg_attr(feature = "nightly", warn(string_add_assign))]
-#![cfg_attr(feature = "nightly", feature(windows_subsystem))]
-#![cfg_attr(feature = "nightly", windows_subsystem = "windows")]
+#![warn(clippy::mut_mut)]
+#![warn(clippy::string_add)]
+#![warn(clippy::string_add_assign)]
+#![windows_subsystem = "windows"]
 
 #[macro_use]
 extern crate conrod;
 #[macro_use]
 extern crate conrod_derive;
-extern crate rand;
-extern crate ttf_noto_sans;
-extern crate vecmath;
 
-use conrod::UiBuilder;
-use conrod::backend::glium::Renderer;
-use conrod::backend::glium::glium::{self, Display, Surface};
-use conrod::backend::glium::glium::glutin::{ContextBuilder, Event, KeyboardInput, VirtualKeyCode,
-                                            WindowBuilder, WindowEvent};
+use crate::view::Ids;
+use crate::view_model::App;
+use conrod::backend::glium::glium::glutin::{
+    ContextBuilder, Event, KeyboardInput, VirtualKeyCode, WindowBuilder, WindowEvent,
+};
 use conrod::backend::glium::glium::texture::Texture2d;
+use conrod::backend::glium::glium::{self, Display, Surface};
+use conrod::backend::glium::Renderer;
 use conrod::image::Map as ImageMap;
 use conrod::text::FontCollection;
+use conrod::UiBuilder;
 use std::fmt;
-use view::Ids;
-use view_model::App;
 
 mod model;
 mod view;
@@ -51,10 +46,11 @@ fn main() {
         .with_dimensions(WIDTH, HEIGHT);
     let context = ContextBuilder::new().with_vsync(true).with_multisampling(4);
     let display = Display::new(window, context, &event_loop.raw).expect("failed to create Display");
-    let mut ui = UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
+    let mut ui = UiBuilder::new([f64::from(WIDTH), f64::from(HEIGHT)]).build();
 
     let font_collection = FontCollection::from_bytes(ttf_noto_sans::REGULAR);
-    let _ = ui.fonts
+    let _ = ui
+        .fonts
         .insert(font_collection.into_font().expect("failed to into_font"));
 
     let mut renderer = Renderer::new(&display).expect("failed to create Renderer");
@@ -63,15 +59,15 @@ fn main() {
     let mut app = App::default();
     let mut ids = Ids::new(ui.widget_id_generator());
     'main: loop {
-        for event in event_loop.next() {
+        for event in event_loop.next_events() {
             // Use the `winit` backend feature to convert the winit event to a conrod one.
             if let Some(event) = conrod::backend::winit::convert_event(event.clone(), &display) {
                 ui.handle_event(event);
                 event_loop.needs_update();
             }
 
-            match event {
-                Event::WindowEvent { event, .. } => match event {
+            if let Event::WindowEvent { event, .. } = event {
+                match event {
                     // Break from the loop upon `Escape`.
                     WindowEvent::Closed
                     | WindowEvent::KeyboardInput {
@@ -83,8 +79,7 @@ fn main() {
                         ..
                     } => break 'main,
                     _ => (),
-                },
-                _ => (),
+                }
             }
         }
 
@@ -117,27 +112,32 @@ pub struct EventLoop {
 }
 
 impl fmt::Debug for EventLoop {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "EventLoop {{ raw: ..., ui_needs_update: {:?}, last_update: {:?} }}",
-            self.ui_needs_update,
-            self.last_update
+            self.ui_needs_update, self.last_update
         )
     }
 }
 
-impl EventLoop {
-    pub fn new() -> Self {
+impl Default for EventLoop {
+    fn default() -> Self {
         EventLoop {
             raw: glium::glutin::EventsLoop::new(),
             last_update: std::time::Instant::now(),
             ui_needs_update: true,
         }
     }
+}
+
+impl EventLoop {
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     /// Produce an iterator yielding all available events.
-    pub fn next(&mut self) -> Vec<Event> {
+    pub fn next_events(&mut self) -> Vec<Event> {
         // We don't want to loop any faster than 60 FPS, so wait until it has been at least 16ms
         // since the last yield.
         let last_update = self.last_update;
