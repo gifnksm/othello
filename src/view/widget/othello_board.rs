@@ -52,8 +52,8 @@ impl<'a> OthelloBoard<'a> {
         OthelloBoard {
             common: CommonBuilder::default(),
             style: Style::default(),
-            board: board,
-            show_candidates: show_candidates,
+            board,
+            show_candidates,
         }
     }
 

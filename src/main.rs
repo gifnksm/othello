@@ -68,8 +68,8 @@ fn main() {
                     *should_update_ui = true;
                 }
 
-                match event {
-                    glium::glutin::event::Event::WindowEvent { event, .. } => match event {
+                if let glium::glutin::event::Event::WindowEvent { event, .. } = event {
+                    match event {
                         // Break from the loop upon `Escape`.
                         glium::glutin::event::WindowEvent::CloseRequested
                         | glium::glutin::event::WindowEvent::KeyboardInput {
@@ -82,8 +82,7 @@ fn main() {
                             ..
                         } => *should_exit = true,
                         _ => {}
-                    },
-                    _ => {}
+                    }
                 }
             }
             Request::SetUi { needs_redraw } => {
@@ -186,11 +185,8 @@ where
         }
 
         // Request redraw if needed.
-        match &event {
-            event::Event::RedrawRequested(_) => {
-                callback(Request::Redraw, &display);
-            }
-            _ => {}
+        if let event::Event::RedrawRequested(_) = &event {
+            callback(Request::Redraw, &display);
         }
     })
 }

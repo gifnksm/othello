@@ -57,9 +57,9 @@ impl<'a> Indicator {
         Indicator {
             common: CommonBuilder::default(),
             style: Style::default(),
-            side: side,
-            kind: kind,
-            num_disk: num_disk,
+            side,
+            kind,
+            num_disk,
         }
     }
 

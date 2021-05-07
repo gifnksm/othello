@@ -86,7 +86,7 @@ impl Evaluator {
             (-15, edge_x_mask),
         ];
 
-        Evaluator { weights: weights }
+        Evaluator { weights }
     }
 
     fn eval_disk_place(&self, board: &Board) -> i32 {

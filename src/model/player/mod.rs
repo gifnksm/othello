@@ -164,7 +164,7 @@ impl AiPlayer {
         });
 
         Some(AiPlayer {
-            handle: handle,
+            handle,
             receiver: host_rx,
             sender: host_tx,
         })

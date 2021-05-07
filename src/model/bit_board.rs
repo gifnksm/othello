@@ -44,10 +44,7 @@ impl BitBoard {
     }
 
     pub fn points(self, size: Size) -> Points {
-        Points {
-            size: size,
-            mask: self,
-        }
+        Points { size, mask: self }
     }
 
     pub fn contains(self, pt: Point, size: Size) -> bool {
