@@ -1,6 +1,5 @@
 use super::{BitBoard, Point, Size};
-use std::ops::BitAnd;
-use std::slice;
+use std::{ops::BitAnd, slice};
 
 #[derive(Copy, Clone, Debug)]
 pub struct MdOffset {

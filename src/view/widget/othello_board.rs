@@ -1,9 +1,11 @@
 use super::OthelloDisk;
 use crate::model::{Board, Point};
-use conrod_core::color::{self, Color, Colorable};
-use conrod_core::widget::{self, Circle, Common, CommonBuilder, Matrix, UpdateArgs};
-use conrod_core::{builder_methods, widget_ids, WidgetStyle};
-use conrod_core::{Borderable, Positionable, Scalar, Sizeable, Widget};
+use conrod_core::{
+    builder_methods,
+    color::{self, Color, Colorable},
+    widget::{self, Circle, Common, CommonBuilder, Matrix, UpdateArgs},
+    widget_ids, Borderable, Positionable, Scalar, Sizeable, Widget, WidgetStyle,
+};
 
 #[derive(Debug)]
 pub struct OthelloBoard<'a> {

@@ -1,6 +1,8 @@
-pub use self::bit_board::BitBoard;
-pub use self::board::Board;
-pub use self::player::{AiPlayer, PlayerKind};
+pub use self::{
+    bit_board::BitBoard,
+    board::Board,
+    player::{AiPlayer, PlayerKind},
+};
 
 mod bit_board;
 mod board;

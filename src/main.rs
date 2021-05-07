@@ -14,15 +14,15 @@
 #![warn(clippy::string_add_assign)]
 #![windows_subsystem = "windows"]
 
-use crate::view::Ids;
-use crate::view_model::App;
-use conrod_core::UiBuilder;
-use conrod_core::{image::Map as ImageMap, text::Font};
+use crate::{view::Ids, view_model::App};
+use conrod_core::{image::Map as ImageMap, text::Font, UiBuilder};
 use conrod_glium::Renderer;
-use glium::glutin::{event, event_loop};
-use glium::glutin::{window::WindowBuilder, ContextBuilder};
-use glium::texture::Texture2d;
-use glium::{self, Display, Surface};
+use glium::{
+    self,
+    glutin::{event, event_loop, window::WindowBuilder, ContextBuilder},
+    texture::Texture2d,
+    Display, Surface,
+};
 
 mod model;
 mod view;

@@ -1,12 +1,16 @@
-use super::widget::{Indicator, OthelloBoard};
-use super::Ids;
-use crate::model::Side;
-use crate::view_model::{GameConfig, PlayState, State, ViewConfig};
-use conrod_core::color::Colorable;
-use conrod_core::widget::line::Style as LineStyle;
-use conrod_core::widget::{Button, Canvas, Rectangle};
-use conrod_core::Positionable;
-use conrod_core::{Borderable, Labelable, Sizeable, UiCell, Widget};
+use super::{
+    widget::{Indicator, OthelloBoard},
+    Ids,
+};
+use crate::{
+    model::Side,
+    view_model::{GameConfig, PlayState, State, ViewConfig},
+};
+use conrod_core::{
+    color::Colorable,
+    widget::{line::Style as LineStyle, Button, Canvas, Rectangle},
+    Borderable, Labelable, Positionable, Sizeable, UiCell, Widget,
+};
 
 pub fn set_widgets(
     ui: &mut UiCell<'_>,

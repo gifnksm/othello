@@ -1,6 +1,5 @@
 use crate::model::{AiPlayer, Board, PlayerKind, Point, Side, Size};
-use std::mem;
-use std::sync::mpsc::TryRecvError;
+use std::{mem, sync::mpsc::TryRecvError};
 
 pub enum State {
     Start,

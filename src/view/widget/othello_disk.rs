@@ -1,8 +1,10 @@
 use crate::model::Side;
-use conrod_core::color::{self, Color, Colorable};
-use conrod_core::widget::{self, BorderedRectangle, Circle, Common, CommonBuilder, UpdateArgs};
-use conrod_core::{builder_methods, widget_ids, WidgetStyle};
-use conrod_core::{Borderable, Point, Positionable, Scalar, Widget};
+use conrod_core::{
+    builder_methods,
+    color::{self, Color, Colorable},
+    widget::{self, BorderedRectangle, Circle, Common, CommonBuilder, UpdateArgs},
+    widget_ids, Borderable, Point, Positionable, Scalar, Widget, WidgetStyle,
+};
 
 #[derive(Debug)]
 pub struct OthelloDisk {
