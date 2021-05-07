@@ -12,7 +12,7 @@ description = "Othello game."
 conrod = {version = "0.57", features = ["winit", "glium"]}
 conrod_derive = "0.1"
 rand = "0.8.3"
-ttf-noto-sans = "0.1"
+ttf-noto-sans = "0.1.1"
 vecmath = "1.0.0"
 
 [features]
