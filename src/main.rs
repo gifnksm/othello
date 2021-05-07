@@ -14,12 +14,19 @@
 #![warn(clippy::string_add_assign)]
 #![windows_subsystem = "windows"]
 
+use std::time::{Duration, Instant};
+
 use crate::{view::Ids, view_model::App};
 use conrod_core::{image::Map as ImageMap, text::Font, UiBuilder};
 use conrod_glium::Renderer;
 use glium::{
-    self,
-    glutin::{event, event_loop, window::WindowBuilder, ContextBuilder},
+    glutin::{
+        dpi::LogicalSize,
+        event::{Event, KeyboardInput, StartCause, VirtualKeyCode, WindowEvent},
+        event_loop::{ControlFlow, EventLoop},
+        window::WindowBuilder,
+        ContextBuilder,
+    },
     texture::Texture2d,
     Display, Surface,
 };
@@ -32,10 +39,10 @@ fn main() {
     const WIDTH: u32 = 1024;
     const HEIGHT: u32 = 768;
 
-    let event_loop = glium::glutin::event_loop::EventLoop::new();
+    let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_title("Othello")
-        .with_inner_size(glium::glutin::dpi::LogicalSize::new(WIDTH, HEIGHT));
+        .with_inner_size(LogicalSize::new(WIDTH, HEIGHT));
     let context = ContextBuilder::new().with_vsync(true).with_multisampling(4);
     let display = Display::new(window, context, &event_loop).expect("failed to create Display");
     let mut ui = UiBuilder::new([f64::from(WIDTH), f64::from(HEIGHT)]).build();
@@ -68,15 +75,14 @@ fn main() {
                     *should_update_ui = true;
                 }
 
-                if let glium::glutin::event::Event::WindowEvent { event, .. } = event {
+                if let Event::WindowEvent { event, .. } = event {
                     match event {
                         // Break from the loop upon `Escape`.
-                        glium::glutin::event::WindowEvent::CloseRequested
-                        | glium::glutin::event::WindowEvent::KeyboardInput {
+                        WindowEvent::CloseRequested
+                        | WindowEvent::KeyboardInput {
                             input:
-                                glium::glutin::event::KeyboardInput {
-                                    virtual_keycode:
-                                        Some(glium::glutin::event::VirtualKeyCode::Escape),
+                                KeyboardInput {
+                                    virtual_keycode: Some(VirtualKeyCode::Escape),
                                     ..
                                 },
                             ..
@@ -109,7 +115,7 @@ fn main() {
 #[derive(Debug)]
 pub enum Request<'a, 'b: 'a> {
     Event {
-        event: &'a event::Event<'b, ()>,
+        event: &'a Event<'b, ()>,
         should_update_ui: &'a mut bool,
         should_exit: &'a mut bool,
     },
@@ -125,11 +131,11 @@ pub enum Request<'a, 'b: 'a> {
 ///
 /// This function simplifies some of the boilerplate involved in limiting the redraw rate in the
 /// glutin+glium event loop.
-pub fn run_loop<F>(display: Display, event_loop: event_loop::EventLoop<()>, mut callback: F) -> !
+pub fn run_loop<F>(display: Display, event_loop: EventLoop<()>, mut callback: F) -> !
 where
     F: 'static + FnMut(Request, &Display),
 {
-    let sixteen_ms = std::time::Duration::from_millis(16);
+    let sixteen_ms = Duration::from_millis(16);
     let mut next_update = None;
     let mut ui_update_needed = false;
     event_loop.run(move |event, _, control_flow| {
@@ -146,7 +152,7 @@ where
             );
             ui_update_needed |= should_update_ui;
             if should_exit {
-                *control_flow = event_loop::ControlFlow::Exit;
+                *control_flow = ControlFlow::Exit;
                 return;
             }
         }
@@ -156,10 +162,10 @@ where
         // - we didn't request update on the last event and new events have arrived since then.
         let should_set_ui_on_main_events_cleared = next_update.is_none() && ui_update_needed;
         match (&event, should_set_ui_on_main_events_cleared) {
-            (event::Event::NewEvents(event::StartCause::Init { .. }), _)
-            | (event::Event::NewEvents(event::StartCause::ResumeTimeReached { .. }), _)
-            | (event::Event::MainEventsCleared, true) => {
-                next_update = Some(std::time::Instant::now() + sixteen_ms);
+            (Event::NewEvents(StartCause::Init { .. }), _)
+            | (Event::NewEvents(StartCause::ResumeTimeReached { .. }), _)
+            | (Event::MainEventsCleared, true) => {
+                next_update = Some(Instant::now() + sixteen_ms);
                 ui_update_needed = false;
 
                 let mut needs_redraw = false;
@@ -179,13 +185,13 @@ where
             _ => {}
         }
         if let Some(next_update) = next_update {
-            *control_flow = event_loop::ControlFlow::WaitUntil(next_update);
+            *control_flow = ControlFlow::WaitUntil(next_update);
         } else {
-            *control_flow = event_loop::ControlFlow::Wait;
+            *control_flow = ControlFlow::Wait;
         }
 
         // Request redraw if needed.
-        if let event::Event::RedrawRequested(_) = &event {
+        if let Event::RedrawRequested(_) = &event {
             callback(Request::Redraw, &display);
         }
     })
