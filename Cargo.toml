@@ -9,11 +9,14 @@ repository = "https://github.com/gifnksm/othello"
 description = "Othello game."
 
 [dependencies]
-conrod = {version = "0.57", features = ["winit", "glium"]}
-conrod_derive = "0.1"
+conrod_core = "0.72.0"
+conrod_glium = "0.72.0"
+conrod_winit = "0.72.0"
+glium = "0.28"
 rand = "0.8.3"
 ttf-noto-sans = "0.1.1"
 vecmath = "1.0.0"
+winit = "0.23.0"
 
 [features]
 default = []

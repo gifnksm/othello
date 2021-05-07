@@ -1,6 +1,6 @@
 use super::BoardSize;
 use crate::model::PlayerKind;
-use conrod::color::{self, Color};
+use conrod_core::color::{self, Color};
 
 #[derive(Copy, Clone, Debug)]
 pub struct GameConfig {
