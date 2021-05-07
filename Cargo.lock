@@ -661,7 +661,7 @@ version = "0.1.0"
 dependencies = [
  "conrod",
  "conrod_derive",
- "rand 0.4.6",
+ "rand 0.8.3",
  "ttf-noto-sans",
  "vecmath",
 ]
