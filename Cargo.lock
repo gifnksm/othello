@@ -720,12 +720,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b058c3a640efd4bcf63266512e4bb03187192c1b29edd38b16d5a014613e3199"
 
 [[package]]
+name = "piston-float"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f900be47e312e126cc71d35548e8e31edd3901b92ab82d1c4c4757e6b5526564"
+
+[[package]]
 name = "piston-viewport"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c5548a838fd9dc604c96d886c03c303f043a2d85f88719cca59dc7991d86343"
 dependencies = [
- "piston-float",
+ "piston-float 0.3.0",
 ]
 
 [[package]]
@@ -1175,11 +1181,11 @@ dependencies = [
 
 [[package]]
 name = "vecmath"
-version = "0.3.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bdd6034ee9c1e5e12485f3e4120e12777f6c81cf43bf9a73bff98ed2b479afe"
+checksum = "956ae1e0d85bca567dee1dcf87fb1ca2e792792f66f87dced8381f99cd91156a"
 dependencies = [
- "piston-float",
+ "piston-float 1.0.0",
 ]
 
 [[package]]
