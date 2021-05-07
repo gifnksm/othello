@@ -12,9 +12,9 @@ pub struct Player<E> {
 impl<E> Player<E> {
     pub fn new(side: Side, num_eval: u32, evaluator: E) -> Self {
         Player {
-            side: side,
-            num_eval: num_eval,
-            evaluator: evaluator,
+            side,
+            num_eval,
+            evaluator,
         }
     }
 }

@@ -1,10 +1,13 @@
 use super::Ids;
-use crate::model::{PlayerKind, Size};
-use crate::view_model::{BoardSize, GameConfig, PlayState, State, ViewConfig};
-use conrod::color::Colorable;
-use conrod::widget::{Button, Canvas, DropDownList, Text};
-use conrod::Positionable;
-use conrod::{Labelable, Sizeable, UiCell, Widget};
+use crate::{
+    model::{PlayerKind, Size},
+    view_model::{BoardSize, GameConfig, PlayState, State, ViewConfig},
+};
+use conrod_core::{
+    color::Colorable,
+    widget::{Button, Canvas, DropDownList, Text},
+    Labelable, Positionable, Sizeable, UiCell, Widget,
+};
 
 pub fn set_widgets(
     ui: &mut UiCell<'_>,

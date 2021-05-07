@@ -1,6 +1,6 @@
 use super::FindMove;
 use crate::model::{Board, Point};
-use rand::{self, ThreadRng};
+use rand::{self, rngs::ThreadRng, seq::IteratorRandom as _};
 
 pub struct Player {
     rng: ThreadRng,
@@ -18,6 +18,6 @@ impl FindMove for Player {
     fn find_move(&mut self, board: Board) -> Point {
         let size = board.size();
         let pts = board.move_candidates().points(size);
-        rand::seq::sample_iter(&mut self.rng, pts, 1).unwrap()[0]
+        pts.choose(&mut self.rng).unwrap()
     }
 }

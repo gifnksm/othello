@@ -1,6 +1,5 @@
 use crate::model::{AiPlayer, Board, PlayerKind, Point, Side, Size};
-use std::mem;
-use std::sync::mpsc::TryRecvError;
+use std::{mem, sync::mpsc::TryRecvError};
 
 pub enum State {
     Start,
@@ -19,9 +18,9 @@ impl PlayState {
     pub fn new(size: Size, black_kind: PlayerKind, white_kind: PlayerKind) -> PlayState {
         let board = Board::new(size);
         PlayState {
-            board: board,
-            black_kind: black_kind,
-            white_kind: white_kind,
+            board,
+            black_kind,
+            white_kind,
             black_ai_player: AiPlayer::try_new(black_kind, &board, Side::Black),
             white_ai_player: AiPlayer::try_new(white_kind, &board, Side::White),
         }

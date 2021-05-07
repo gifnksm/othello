@@ -1,5 +1,5 @@
 use crate::view_model::{App, State};
-use conrod::UiCell;
+use conrod_core::{widget_ids, UiCell};
 
 mod play;
 mod start;

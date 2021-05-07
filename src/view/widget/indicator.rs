@@ -1,9 +1,12 @@
 use super::OthelloDisk;
 use crate::model::{PlayerKind, Side};
-use conrod::color::{self, Color, Colorable};
-use conrod::position::Dimension;
-use conrod::widget::{self, BorderedRectangle, Common, CommonBuilder, Text, UpdateArgs};
-use conrod::{Borderable, FontSize, Positionable, Scalar, Sizeable, Ui, Widget};
+use conrod_core::{
+    builder_methods,
+    color::{self, Color, Colorable},
+    position::Dimension,
+    widget::{self, BorderedRectangle, Common, CommonBuilder, Text, UpdateArgs},
+    widget_ids, Borderable, FontSize, Positionable, Scalar, Sizeable, Ui, Widget, WidgetStyle,
+};
 
 #[derive(Debug)]
 pub struct Indicator {
@@ -56,9 +59,9 @@ impl<'a> Indicator {
         Indicator {
             common: CommonBuilder::default(),
             style: Style::default(),
-            side: side,
-            kind: kind,
-            num_disk: num_disk,
+            side,
+            kind,
+            num_disk,
         }
     }
 

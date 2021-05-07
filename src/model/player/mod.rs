@@ -1,11 +1,12 @@
-use self::alpha_beta::Player as AlphaBetaPlayer;
 pub use self::evaluator::{
     Evaluate, EvenEvaluator, Score, StrongEvaluator, WeakEvaluator, MAX_SCORE, MIN_SCORE,
 };
-use self::random::Player as RandomPlayer;
+use self::{alpha_beta::Player as AlphaBetaPlayer, random::Player as RandomPlayer};
 use crate::model::{Board, Point, Side};
-use std::sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError};
-use std::thread::{self, JoinHandle};
+use std::{
+    sync::mpsc::{self, Receiver, SendError, Sender, TryRecvError},
+    thread::{self, JoinHandle},
+};
 
 mod alpha_beta;
 mod evaluator;
@@ -57,9 +58,7 @@ impl Default for PlayerKind {
 
 impl AsRef<str> for PlayerKind {
     fn as_ref(&self) -> &str {
-        use self::AiKind::*;
-        use self::AiPower::*;
-        use self::PlayerKind::*;
+        use self::{AiKind::*, AiPower::*, PlayerKind::*};
         match *self {
             Human => "Human",
             Ai(Random) => "AI: random",
@@ -78,9 +77,7 @@ impl AsRef<str> for PlayerKind {
 
 impl PlayerKind {
     pub fn all_values() -> [Self; 11] {
-        use self::AiKind::*;
-        use self::AiPower::*;
-        use self::PlayerKind::*;
+        use self::{AiKind::*, AiPower::*, PlayerKind::*};
         [
             Human,
             Ai(Random),
@@ -97,9 +94,7 @@ impl PlayerKind {
     }
 
     pub fn to_index(self) -> usize {
-        use self::AiKind::*;
-        use self::AiPower::*;
-        use self::PlayerKind::*;
+        use self::{AiKind::*, AiPower::*, PlayerKind::*};
         match self {
             Human => 0,
             Ai(Random) => 1,
@@ -164,7 +159,7 @@ impl AiPlayer {
         });
 
         Some(AiPlayer {
-            handle: handle,
+            handle,
             receiver: host_rx,
             sender: host_tx,
         })

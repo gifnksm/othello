@@ -1,5 +1,7 @@
-use super::multi_direction::{MdMask, MdOffset};
-use super::{BitBoard, Point, Side, Size, MAX_SIZE, MIN_SIZE};
+use super::{
+    multi_direction::{MdMask, MdOffset},
+    BitBoard, Point, Side, Size, MAX_SIZE, MIN_SIZE,
+};
 use std::cmp;
 
 #[derive(Copy, Clone, Debug)]
@@ -19,7 +21,7 @@ impl Board {
 
         let (x, y) = (size.0 / 2 - 1, size.1 / 2 - 1);
         let mut board = Board {
-            size: size,
+            size,
             turn: Some(Side::Black),
             offset: MdOffset::from_size(size),
             black_cells: BitBoard::from_point(Point(x + 1, y), size)
@@ -74,11 +76,7 @@ impl Board {
     pub fn make_move(&self, pt: Point) -> Option<Board> {
         assert!(pt.0 < self.size.0 && pt.1 < self.size.1);
 
-        let (turn, flip) = if let Some(tp) = self.flip_disks(pt) {
-            tp
-        } else {
-            return None;
-        };
+        let (turn, flip) = self.flip_disks(pt)?;
 
         let mut board = *self;
         match turn {
@@ -104,11 +102,7 @@ impl Board {
     }
 
     fn flip_disks(&self, pt: Point) -> Option<(Side, BitBoard)> {
-        let turn = if let Some(turn) = self.turn {
-            turn
-        } else {
-            return None;
-        };
+        let turn = self.turn?;
 
         if !self.move_cand.contains(pt, self.size) {
             return None;

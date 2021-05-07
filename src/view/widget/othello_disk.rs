@@ -1,8 +1,10 @@
 use crate::model::Side;
-use conrod::color::{self, Color, Colorable};
-use conrod::widget::{self, BorderedRectangle, Circle, Common, CommonBuilder, UpdateArgs};
-use conrod::{Borderable, Point, Positionable, Scalar, Widget};
-use vecmath;
+use conrod_core::{
+    builder_methods,
+    color::{self, Color, Colorable},
+    widget::{self, BorderedRectangle, Circle, Common, CommonBuilder, UpdateArgs},
+    widget_ids, Borderable, Point, Positionable, Scalar, Widget, WidgetStyle,
+};
 
 #[derive(Debug)]
 pub struct OthelloDisk {
@@ -152,10 +154,8 @@ impl Widget for OthelloDisk {
 
         let circle_param = if let Some(side) = self.disk {
             Some((false, side, None))
-        } else if let Some(side) = self.flow_disk {
-            Some((true, side, Some(0.3)))
         } else {
-            None
+            self.flow_disk.map(|side| (true, side, Some(0.3)))
         };
 
         if let Some((interactive, side, alpha)) = circle_param {
